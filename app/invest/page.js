@@ -69,11 +69,11 @@ export default function InvestPage() {
           Browse tokenized invoices and fund them. Estimated yield is shown for educational purposes; actual payment is received at invoice maturity.
         </p>
 
-        {/* Filter Controls - Disabled with Coming Soon Tooltips */}
+        {/* Filter Controls - Disabled with Coming Soon Indicators */}
         <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/30 p-6">
           <div className="flex flex-wrap gap-4 items-center">
             {/* Yield Range Filter */}
-            <div className="group relative">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled
@@ -85,16 +85,13 @@ export default function InvestPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-slate-700 text-slate-200 text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Coming soon
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                  <div className="border-4 border-transparent border-t-slate-700"></div>
-                </div>
-              </div>
+              <span className="inline-flex items-center rounded-full bg-slate-700/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                Soon
+              </span>
             </div>
 
             {/* Currency Filter */}
-            <div className="group relative">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled
@@ -106,16 +103,13 @@ export default function InvestPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-slate-700 text-slate-200 text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Coming soon
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                  <div className="border-4 border-transparent border-t-slate-700"></div>
-                </div>
-              </div>
+              <span className="inline-flex items-center rounded-full bg-slate-700/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                Soon
+              </span>
             </div>
 
             {/* Maturity Date Filter */}
-            <div className="group relative">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled
@@ -127,16 +121,13 @@ export default function InvestPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-slate-700 text-slate-200 text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Coming soon
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                  <div className="border-4 border-transparent border-t-slate-700"></div>
-                </div>
-              </div>
+              <span className="inline-flex items-center rounded-full bg-slate-700/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                Soon
+              </span>
             </div>
 
             {/* Sort Options */}
-            <div className="group relative">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled
@@ -148,16 +139,13 @@ export default function InvestPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-slate-700 text-slate-200 text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Coming soon
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                  <div className="border-4 border-transparent border-t-slate-700"></div>
-                </div>
-              </div>
+              <span className="inline-flex items-center rounded-full bg-slate-700/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                Soon
+              </span>
             </div>
 
             {/* Clear Filters - Also Disabled */}
-            <div className="group relative ml-auto">
+            <div className="flex items-center gap-2 ml-auto">
               <button
                 type="button"
                 disabled
@@ -166,12 +154,9 @@ export default function InvestPage() {
               >
                 Clear Filters
               </button>
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-slate-700 text-slate-200 text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Coming soon
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                  <div className="border-4 border-transparent border-t-slate-700"></div>
-                </div>
-              </div>
+              <span className="inline-flex items-center rounded-full bg-slate-700/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                Soon
+              </span>
             </div>
           </div>
         </div>
