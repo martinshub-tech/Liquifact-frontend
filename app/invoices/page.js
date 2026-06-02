@@ -1,8 +1,9 @@
+'use client';
 import Link from "next/link";
 import ErrorBanner from "../../components/ErrorBanner";
 
 import { useRef, useState } from 'react';
-import Link from 'next/link';
+import { copy } from '../copy/en';
 
 /**
  * FILE_CONSTRAINTS
