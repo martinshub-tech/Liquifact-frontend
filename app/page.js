@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { copy } from './copy/en';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -43,20 +44,20 @@ export default function Home() {
         </p>
 
         <div className="grid gap-6 sm:grid-cols-2 mb-12">
-          <a
+          <Link
             href="/invoices"
             className="block rounded-xl border border-slate-700 bg-slate-900/50 p-6 hover:border-cyan-500/50 transition-colors"
           >
             <h2 className="text-lg font-semibold text-cyan-400 mb-2">{copy.home.boxBusinessTitle}</h2>
             <p className="text-slate-400 text-sm">{copy.home.boxBusinessSub}</p>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/invest"
             className="block rounded-xl border border-slate-700 bg-slate-900/50 p-6 hover:border-cyan-500/50 transition-colors"
           >
             <h2 className="text-lg font-semibold text-cyan-400 mb-2">{copy.home.boxInvestTitle}</h2>
             <p className="text-slate-400 text-sm">{copy.home.boxInvestSub}</p>
-          </a>
+          </Link>
         </div>
 
         <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6">
