@@ -1,12 +1,15 @@
-"use client";
+﻿"use client";
 import Button from '@/components/Button';
 
+import Button from '@/components/Button'
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ErrorBanner from "@/components/ErrorBanner";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import Pagination from "@/components/Pagination";
+import Button from '@/components/Button'
 import { copy } from "../copy/en";
+import Button from '@/components/Button'
 import { loadMockInvoices } from "./lib";
 
 /**
@@ -16,7 +19,7 @@ import { loadMockInvoices } from "./lib";
 export const PAGE_SIZE = 10;
 
 /**
- * Mock invoice data — replace with real API call once the backend endpoint
+ * Mock invoice data â€” replace with real API call once the backend endpoint
  * is available (follow-up: link backend issue here).
  *
  * Contract per item: { id, issuer, amount, currency, dueDate, yield, status }
@@ -93,7 +96,7 @@ export function getPaginationAnnouncement(shown, total) {
 }
 
 /**
- * InvestMarketplace — main component for the invest page.
+ * InvestMarketplace â€” main component for the invest page.
  *
  * Fetches invoices via `loadInvoices`, renders them PAGE_SIZE at a time,
  * and exposes a "Load more" control to append the next batch.  Paging
@@ -116,7 +119,7 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
   /** Ref forwarded to the "Load more" button for focus management. */
   const loadMoreRef = useRef(null);
 
-  // ── Fetch invoices ────────────────────────────────────────────────────────
+  // â”€â”€ Fetch invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     let isActive = true;
 
@@ -149,14 +152,14 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
     };
   }, [loadInvoices]);
 
-  // ── Reset paging when a new invoice set arrives ───────────────────────────
+  // â”€â”€ Reset paging when a new invoice set arrives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (invoices !== null) {
       setVisibleCount(PAGE_SIZE);
     }
   }, [invoices]);
 
-  // ── Load-more handler ─────────────────────────────────────────────────────
+  // â”€â”€ Load-more handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /**
    * Appends the next PAGE_SIZE items and updates the live-region status.
    * Focus is moved back to the "Load more" button (if it still exists) so
@@ -176,7 +179,7 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
     }, 0);
   }, [invoices]);
 
-  // ── Derived values ────────────────────────────────────────────────────────
+  // â”€â”€ Derived values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const visibleInvoices = Array.isArray(invoices)
     ? invoices.slice(0, visibleCount)
     : [];
@@ -338,3 +341,4 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
 export default function InvestPage() {
   return <InvestMarketplace />;
 }
+
