@@ -1,16 +1,15 @@
 "use client";
 import Button from '@/components/Button';
-
-import Button from '@/components/Button'
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ErrorBanner from "@/components/ErrorBanner";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import Pagination from "@/components/Pagination";
-import Button from '@/components/Button'
 import { copy } from "../copy/en";
-import Button from '@/components/Button'
 import { fetchInvestableInvoices } from "../../lib/api/invoices";
+import InvoiceSearch from '@/components/InvoiceSearch';
+import InvoiceFilters, { DEFAULT_FILTERS } from '@/components/InvoiceFilters';
+import useInvoiceFilters from '../../lib/hooks/useInvoiceFilters';
 
 /**
  * Number of invoices rendered per page.  Export allows tests to reference
@@ -98,6 +97,7 @@ export function getInvoiceLoadAnnouncement(
  * @returns {string}
  */
 export function getPaginationAnnouncement(shown, total) {
+  if (total === 0) return "No invoices available";
   return `Showing ${shown} of ${total} investable invoices`;
 }
 
@@ -117,7 +117,7 @@ export function getPaginationAnnouncement(shown, total) {
 export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
   const [invoices, setInvoices] = useState(null); // null = loading
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [paginationAnnouncement, setPaginationAnnouncement] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
   const [loadError, setLoadError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -125,6 +125,9 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
 
   /** Ref forwarded to the \"Load more\" button for focus management. */
   const loadMoreRef = useRef(null);
+
+  const allInvoices = invoices || [];
+  const filteredInvoices = useInvoiceFilters(allInvoices, debouncedQuery, filters);
 
   // ——————————————————————————————————————————————————————————————————————————
   useEffect(() => {
@@ -143,15 +146,14 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
 
         setInvoices(normalizedInvoices);
         setVisibleCount(PAGE_SIZE);
-        setPaginationAnnouncement("");
       } catch {
         if (!isActive) {
           return;
         }
 
-        setInvoices([]);
+        setInvoices(null);
         setLoadError(copy.invest.errorDescription);
-        setPaginationAnnouncement("");
+        setStatusMessage(copy.invest.errorStatus);
       }
     };
 
@@ -179,9 +181,8 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
    */
   const handleLoadMore = useCallback(() => {
     setVisibleCount((prev) => {
-      const next = Math.min(prev + PAGE_SIZE, invoices?.length ?? prev);
-      const total = invoices?.length ?? 0;
-      setStatusMessage(getPaginationAnnouncement(next, total));
+      const next = Math.min(prev + PAGE_SIZE, filteredInvoices.length);
+      setStatusMessage(getPaginationAnnouncement(next, filteredInvoices.length));
       return next;
     });
 
@@ -189,12 +190,16 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
     setTimeout(() => {
       loadMoreRef.current?.focus();
     }, 0);
-  }, [invoices]);
+  }, [filteredInvoices]);
 
-  // â”€â”€ Derived values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const visibleInvoices = Array.isArray(invoices)
-    ? invoices.slice(0, visibleCount)
-    : [];
+  // ——————————————————————————————————————————————————————————————————————————
+  const visibleInvoices = filteredInvoices.slice(0, visibleCount);
+
+  useEffect(() => {
+    if (invoices === null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStatusMessage(getPaginationAnnouncement(visibleInvoices.length, filteredInvoices.length));
+  }, [filteredInvoices, visibleInvoices.length, invoices]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -220,7 +225,7 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
           <div className="flex flex-wrap gap-4 items-center">
             <InvoiceSearch
               value={searchQuery}
-              onChange={handleSearchChange}
+              onChange={setSearchQuery}
             />
             <InvoiceFilters
               filters={filters}
@@ -246,7 +251,7 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
         ) : (
           <>
             <ul className="space-y-4">
-              {filteredInvoices.map((inv) => (
+              {visibleInvoices.map((inv) => (
                 <li key={inv.id}>
                   <Link
                     href={`/invest/${inv.id}`}
