@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import Button from './Button';
 import { useToast } from './ToastProvider';
 import Button from './Button';
 import { copy } from '../app/copy/en';
@@ -185,20 +186,20 @@ export default function WalletStatus() {
         </div>
       )}
 
-      {/* Main wallet status container */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          {/* Status dot */}
-          <div
-            className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-              walletState === WALLET_STATES.CONNECTED
-                ? 'bg-green-500'
-                : walletState === WALLET_STATES.CONNECTING
-                  ? 'bg-yellow-500 animate-pulse'
-                  : walletState === WALLET_STATES.ERROR || walletState === WALLET_STATES.WRONG_NETWORK
-                    ? 'bg-red-500'
-                    : 'bg-slate-600'
-            }`}
+      <Button
+        variant={config.buttonVariant}
+        loading={walletState === WALLET_STATES.CONNECTING}
+        disabled={config.disabled}
+        onClick={handleClick}
+        aria-label={config.buttonText}
+        aria-describedby="wallet-helper-text"
+      >
+        {walletState === WALLET_STATES.CONNECTING && (
+          <svg
+            className="animate-spin -ml-1 mr-2 h-4 w-4 inline"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
             aria-hidden="true"
           />
 
