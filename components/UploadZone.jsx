@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useRef, useState } from 'react';
-import { copy } from '../app/copy/en';
+import { useRef, useState } from "react";
+import { copy } from "../app/copy/en";
+import { isPdfMagicValid } from "../lib/validation/pdf";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const FILE_CONSTRAINTS = {
-  accept: '.pdf',
-  mimeType: 'application/pdf',
-  maxSizeMb: MAX_UPLOAD_BYTES / (1024 * 1024),
-  maxSizeBytes: MAX_UPLOAD_BYTES,
+  accept: ".pdf",
+  mimeType: "application/pdf",
+  maxSizeMb: 10,
+  maxSizeBytes: 10 * 1024 * 1024,
 };
 
 function ConstraintBadge({ icon, label }) {
@@ -39,7 +40,7 @@ function FileConstraintNotice() {
         <ConstraintBadge icon="\u{1F4C4}" label={copy.uploadZone.badgePdfOnly} />
         <ConstraintBadge
           icon="\u{2696}\u{FE0F}"
-          label={copy.uploadZone.badgeMaxSize.replace('{maxSizeMb}', maxSizeMb)}
+          label={copy.uploadZone.badgeMaxSize.replace("{maxSizeMb}", maxSizeMb)}
         />
         <ConstraintBadge icon="\u{1F512}" label={copy.uploadZone.badgeOneFile} />
       </div>
@@ -48,8 +49,10 @@ function FileConstraintNotice() {
           .replace(/\{maxSizeMb\}/g, maxSizeMb)
           .split(/(PDF documents|{maxSizeMb} MB)/)
           .map((part, i) =>
-            part === 'PDF documents' || part === `${maxSizeMb} MB` ? (
-              <strong key={i} className="text-slate-200">{part}</strong>
+            part === "PDF documents" || part === `${maxSizeMb} MB` ? (
+              <strong key={i} className="text-slate-200">
+                {part}
+              </strong>
             ) : (
               part
             )
@@ -59,7 +62,7 @@ function FileConstraintNotice() {
   );
 }
 
-function Spinner({ className = '' }) {
+function Spinner({ className = "" }) {
   return (
     <svg
       className={`animate-spin -ml-1 mr-2 h-4 w-4 inline ${className}`}
@@ -69,7 +72,11 @@ function Spinner({ className = '' }) {
       aria-hidden="true"
     >
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
     </svg>
   );
 }
@@ -79,12 +86,12 @@ function UploadZone({ onUploadSuccess }) {
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState("idle");
 
   function validate(f) {
-    if (!f) return 'No file selected.';
+    if (!f) return "No file selected.";
     if (f.type !== FILE_CONSTRAINTS.mimeType) {
-      return `Invalid file type "${f.type || 'unknown'}". Only PDF files are accepted.`;
+      return `Invalid file type "${f.type || "unknown"}". Only PDF files are accepted.`;
     }
     if (f.size > FILE_CONSTRAINTS.maxSizeBytes) {
       const sizeMb = (f.size / 1024 / 1024).toFixed(1);
@@ -93,15 +100,27 @@ function UploadZone({ onUploadSuccess }) {
     return null;
   }
 
-  function handleFile(f) {
-    setStatus('idle');
+  async function handleFile(f) {
+    setStatus("idle");
     const err = validate(f);
     if (err) {
       setError(err);
       setFile(null);
-    } else {
+      return;
+    }
+    // Magic byte validation
+    try {
+      const isValid = await isPdfMagicValid(f);
+      if (isValid === false) {
+        setError("The selected file does not appear to be a valid PDF.");
+        setFile(null);
+        return;
+      }
       setError(null);
       setFile(f);
+    } catch (e) {
+      setError("Unable to read file. Please try again.");
+      setFile(null);
     }
   }
 
@@ -119,68 +138,61 @@ function UploadZone({ onUploadSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!file || status !== 'idle') return;
+    if (!file || status !== "idle") return;
 
-    if (file.size > MAX_UPLOAD_BYTES) {
-      const sizeMb = MAX_UPLOAD_BYTES / (1024 * 1024);
-      setError(`File is too large. Max ${sizeMb} MB.`);
-      return;
-    }
-
-    setStatus('uploading');
+    setStatus("uploading");
     setError(null);
 
     try {
       const body = new FormData();
-      body.append('invoice', file);
+      body.append("invoice", file);
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || API_URL;
-      const res = await fetch(`${apiBase}/invoices`, { method: 'POST', body });
+      const res = await fetch(`${API_URL}/invoices`, { method: "POST", body });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || `Upload failed (${res.status})`);
       }
 
-      setStatus('tokenizing');
+      setStatus("tokenizing");
       const { tokenizationDelay = 0 } = await res.json().catch(() => ({}));
       if (tokenizationDelay > 0) {
         await new Promise((r) => setTimeout(r, tokenizationDelay));
       }
-      setStatus('success');
-      if (typeof onUploadSuccess === 'function') {
+      setStatus("success");
+      if (typeof onUploadSuccess === "function") {
         onUploadSuccess({
           id: `upload-${Date.now()}-${file.name}`,
           issuer: file.name,
-          amount: 'Pending',
-          currency: 'USD',
-          dueDate: 'Pending',
-          yield: 'Pending',
-          status: 'Pending tokenization',
+          amount: "Pending",
+          currency: "USD",
+          dueDate: "Pending",
+          yield: "Pending",
+          status: "Pending tokenization",
         });
       }
     } catch (err) {
-      setError(err.message || 'Upload failed. Please try again.');
-      setStatus('idle');
+      setError(err.message || "Upload failed. Please try again.");
+      setStatus("idle");
     }
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       inputRef.current?.click();
     }
   }
 
-  const isProcessing = status === 'uploading' || status === 'tokenizing';
+  const isProcessing = status === "uploading" || status === "tokenizing";
 
   const dropZoneBorder = dragOver
-    ? 'border-cyan-400 bg-cyan-500/10'
+    ? "border-cyan-400 bg-cyan-500/10"
     : error
-      ? 'border-red-500/50 bg-red-500/5'
+      ? "border-red-500/50 bg-red-500/5"
       : file
-        ? 'border-emerald-500/40 bg-emerald-500/5'
-        : 'border-slate-700 bg-slate-900/40 hover:border-slate-600';
+        ? "border-emerald-500/40 bg-emerald-500/5"
+        : "border-slate-700 bg-slate-900/40 hover:border-slate-600";
 
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -201,7 +213,10 @@ function UploadZone({ onUploadSuccess }) {
         role="button"
         tabIndex={0}
         aria-label={copy.uploadZone.dropZoneLabel}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
@@ -211,26 +226,28 @@ function UploadZone({ onUploadSuccess }) {
 
         {file ? (
           <div className="space-y-2">
-            <span className="text-3xl" aria-hidden="true">{'\u2705'}</span>
+            <span className="text-3xl" aria-hidden="true">
+              {"\u2705"}
+            </span>
             <p className="font-medium text-emerald-400">{file.name}</p>
             <p className="text-xs text-slate-500">
-              {(file.size / 1024 / 1024).toFixed(2)} MB {'\u00B7'} PDF
+              {(file.size / 1024 / 1024).toFixed(2)} MB {"\u00B7"} PDF
             </p>
             <p className="text-xs text-slate-500">{copy.uploadZone.changeFile}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <span className="text-4xl" aria-hidden="true">{'\u{1F4C2}'}</span>
-            <p className="font-medium text-slate-300">
-              {copy.uploadZone.dragDropPrompt}
-            </p>
+            <span className="text-4xl" aria-hidden="true">
+              {"\u{1F4C2}"}
+            </span>
+            <p className="font-medium text-slate-300">{copy.uploadZone.dragDropPrompt}</p>
             <p className="text-sm text-slate-500">{copy.uploadZone.browsePrompt}</p>
             <div className="flex justify-center gap-2 flex-wrap pt-1">
               <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-400">
                 {copy.uploadZone.badgePdfOnly}
               </span>
               <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-400">
-                {copy.uploadZone.badgeMaxSize.replace('{maxSizeMb}', FILE_CONSTRAINTS.maxSizeMb)}
+                {copy.uploadZone.badgeMaxSize.replace("{maxSizeMb}", FILE_CONSTRAINTS.maxSizeMb)}
               </span>
             </div>
           </div>
@@ -243,12 +260,12 @@ function UploadZone({ onUploadSuccess }) {
           aria-live="assertive"
           className="mt-3 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
         >
-          <span aria-hidden="true">{'\u26A0\uFE0F'}</span>
+          <span aria-hidden="true">{"\u26A0\uFE0F"}</span>
           {error}
         </p>
       )}
 
-      {status === 'uploading' && (
+      {status === "uploading" && (
         <p
           role="status"
           aria-live="polite"
@@ -259,7 +276,7 @@ function UploadZone({ onUploadSuccess }) {
         </p>
       )}
 
-      {status === 'tokenizing' && (
+      {status === "tokenizing" && (
         <p
           role="status"
           aria-live="polite"
@@ -270,13 +287,13 @@ function UploadZone({ onUploadSuccess }) {
         </p>
       )}
 
-      {status === 'success' && (
+      {status === "success" && (
         <p
           role="status"
           aria-live="polite"
           className="mt-3 flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400"
         >
-          <span aria-hidden="true">{'\u{1F680}'}</span>
+          <span aria-hidden="true">{"\u{1F680}"}</span>
           {copy.uploadZone.statusSuccess}
         </p>
       )}
@@ -290,19 +307,19 @@ function UploadZone({ onUploadSuccess }) {
           hover:bg-cyan-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400
           disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {status === 'uploading' && (
+        {status === "uploading" && (
           <>
             <Spinner />
             {copy.uploadZone.submitUploading}
           </>
         )}
-        {status === 'tokenizing' && (
+        {status === "tokenizing" && (
           <>
             <Spinner />
             {copy.uploadZone.submitTokenizing}
           </>
         )}
-        {(status === 'idle' || status === 'success') && copy.uploadZone.submitIdle}
+        {(status === "idle" || status === "success") && copy.uploadZone.submitIdle}
       </button>
     </form>
   );

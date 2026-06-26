@@ -58,17 +58,18 @@ LiquiFact Frontend is committed to meeting **WCAG 2.1 AA** accessibility sta
 
 ## Known Limitations
 
-| Area | Issue | Reference |
-|------|-------|-----------|
-| Filters | "Soon" filter buttons are disabled and lack focus styles. | `app/invoices/page.js` (TODO comment) |
-| Motion | Reduced‑motion handling is not yet implemented for animated components. | `components/ToastProvider.jsx` |
-| Focus Styles | Some custom SVG icons do not inherit focus outline. | `components/WalletStatus.jsx` |
+| Area         | Issue                                                                   | Reference                             |
+| ------------ | ----------------------------------------------------------------------- | ------------------------------------- |
+| Filters      | "Soon" filter buttons are disabled and lack focus styles.               | `app/invoices/page.js` (TODO comment) |
+| Motion       | Reduced‑motion handling is not yet implemented for animated components. | `components/ToastProvider.jsx`        |
+| Focus Styles | Some custom SVG icons do not inherit focus outline.                     | `components/WalletStatus.jsx`         |
 
 We are actively tracking these items in the repository’s issue tracker and will resolve them in upcoming releases.
 
 ## Contributor Accessibility Checklist
 
 When adding or modifying UI:
+
 - [ ] Use semantic HTML elements and appropriate ARIA attributes.
 - [ ] Ensure every interactive element has a visible focus style.
 - [ ] Verify colour contrast meets **AA** ratios (4.5:1 text, 3:1 large text).
@@ -84,4 +85,4 @@ When adding or modifying UI:
 
 ---
 
-*Last updated: 2026‑06‑26*
+_Last updated: 2026‑06‑24_

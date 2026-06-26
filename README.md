@@ -50,11 +50,10 @@ Part of the LiquiFact stack: **frontend** (this repo) | **backend** (Express API
 
 ### Environment variables
 
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | No | `http://localhost:3001` | Backend API base URL (must be a valid URL) |
-| `NEXT_PUBLIC_SITE_URL` | No | `http://localhost:3000` | Public site URL used for sitemap/robots (must be a valid URL) |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | No | Unset | Stellar network; accepted values: `testnet`, `public` |
+| Variable                      | Required | Default                 | Used by                                                          |
+| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`         | No       | `http://localhost:3001` | [app/page.js](app/page.js)                                       |
+| `NEXT_PUBLIC_STELLAR_NETWORK` | No       | Unset                   | [WALLET_INTEGRATION_CONTRACT.md](WALLET_INTEGRATION_CONTRACT.md) |
 
 `NEXT_PUBLIC_*` values are inlined by Next.js at **build time** and shipped to the browser. **Never store secrets here.**
 
@@ -237,11 +236,10 @@ For frontend/backend contract details see:
 
 ### Environment variables
 
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | No | `http://localhost:3001` | Backend API base URL (must be a valid URL) |
-| `NEXT_PUBLIC_SITE_URL` | No | `http://localhost:3000` | Public site URL for sitemap/robots (must be a valid URL) |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | No | Unset | Stellar network; accepted values: `testnet`, `public` |
+| Variable                      | Required | Default                 | Used by                                                          |
+| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`         | No       | `http://localhost:3001` | [app/page.js](app/page.js)                                       |
+| `NEXT_PUBLIC_STELLAR_NETWORK` | No       | Unset                   | [WALLET_INTEGRATION_CONTRACT.md](WALLET_INTEGRATION_CONTRACT.md) |
 
 `NEXT_PUBLIC_*` values are inlined at build time and must never contain secrets. See [`lib/config/env.js`](lib/config/env.js) for validation rules and defaults.
 

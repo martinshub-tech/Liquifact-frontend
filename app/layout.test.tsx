@@ -56,16 +56,15 @@ function SkipLinkFixture({ children }: { children?: React.ReactNode }) {
 describe("Skip-to-content link", () => {
   it("renders with an accessible label", () => {
     render(<SkipLinkFixture />);
-    expect(
-      screen.getByRole("link", { name: /skip to content/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /skip to content/i })).toBeInTheDocument();
   });
 
   it("targets the #main-content landmark", () => {
     render(<SkipLinkFixture />);
-    expect(
-      screen.getByRole("link", { name: /skip to content/i })
-    ).toHaveAttribute("href", "#main-content");
+    expect(screen.getByRole("link", { name: /skip to content/i })).toHaveAttribute(
+      "href",
+      "#main-content"
+    );
   });
 
   it("is the first focusable element in the document", () => {
@@ -145,9 +144,7 @@ describe("RootLayout", () => {
       </RootLayout>
     );
 
-    expect(
-      screen.getByRole("link", { name: /skip to content/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /skip to content/i })).toBeInTheDocument();
   });
 
   it("skip link in RootLayout targets #main-content", () => {
@@ -157,9 +154,10 @@ describe("RootLayout", () => {
       </RootLayout>
     );
 
-    expect(
-      screen.getByRole("link", { name: /skip to content/i })
-    ).toHaveAttribute("href", "#main-content");
+    expect(screen.getByRole("link", { name: /skip to content/i })).toHaveAttribute(
+      "href",
+      "#main-content"
+    );
   });
 
   it("skip link in RootLayout is the first focusable element", () => {

@@ -1,49 +1,42 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import ErrorBanner from './ErrorBanner';
-import InvoiceListSkeleton from './InvoiceListSkeleton';
-import { copy } from '../app/copy/en';
-import { truncateAddress } from '../lib/format/truncateAddress';
+import { useEffect, useMemo, useState } from "react";
+import ErrorBanner from "./ErrorBanner";
+import InvoiceListSkeleton from "./InvoiceListSkeleton";
+import { copy } from "../app/copy/en";
 
 const INVOICE_STATUSES = {
-  PENDING_TOKENIZATION: 'Pending tokenization',
-  TOKENIZED: 'Tokenized',
-  FUNDED: 'Funded',
-  SETTLED: 'Settled',
+  PENDING_TOKENIZATION: "Pending tokenization",
+  TOKENIZED: "Tokenized",
+  FUNDED: "Funded",
+  SETTLED: "Settled",
 };
 
 const STATUS_STYLES = {
   [INVOICE_STATUSES.PENDING_TOKENIZATION]:
-    'bg-amber-500/10 text-amber-200 ring-1 ring-amber-400/20',
-  [INVOICE_STATUSES.TOKENIZED]:
-    'bg-cyan-500/10 text-cyan-200 ring-1 ring-cyan-400/20',
-  [INVOICE_STATUSES.FUNDED]:
-    'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20',
-  [INVOICE_STATUSES.SETTLED]:
-    'bg-slate-800/80 text-slate-200 ring-1 ring-slate-500/20',
+    "bg-amber-500/10 text-amber-200 ring-1 ring-amber-400/20",
+  [INVOICE_STATUSES.TOKENIZED]: "bg-cyan-500/10 text-cyan-200 ring-1 ring-cyan-400/20",
+  [INVOICE_STATUSES.FUNDED]: "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20",
+  [INVOICE_STATUSES.SETTLED]: "bg-slate-800/80 text-slate-200 ring-1 ring-slate-500/20",
 };
 
 const MOCK_INVOICES = [
   {
-    id: 'inv-1001',
-    issuer: 'Acme Supplies Ltd',
-    issuerAddress: 'GABCDE1234FGHIJ5678KLMNO9012PQRST3456UVWXY7890ZABC1234DE',
-    amount: '12,500',
-    currency: 'USD',
-    dueDate: '2026-06-15',
-    yield: '8.2%',
+    id: "inv-1001",
+    issuer: "Acme Supplies Ltd",
+    amount: "12,500",
+    currency: "USD",
+    dueDate: "2026-06-15",
+    yield: "8.2%",
     status: INVOICE_STATUSES.TOKENIZED,
   },
   {
-    id: 'inv-1002',
-    issuer: 'Bright Logistics GmbH',
-    issuerAddress: 'GXYZ781ABCDE234FGHIJ567KLMNO890PQRST123UVWXY456ZABC789FG',
-    amount: '7,800',
-    currency: 'EUR',
-    dueDate: '2026-07-01',
-    yield: '7.5%',
+    id: "inv-1002",
+    issuer: "Bright Logistics GmbH",
+    amount: "7,800",
+    currency: "EUR",
+    dueDate: "2026-07-01",
+    yield: "7.5%",
     status: INVOICE_STATUSES.FUNDED,
   },
 ];
@@ -128,14 +121,14 @@ function loadMockInvoices() {
 
 function getInvoiceAnnouncement(items) {
   if (!Array.isArray(items)) {
-    return '';
+    return "";
   }
 
   if (items.length === 0) {
-    return 'No invoices are currently available.';
+    return "No invoices are currently available.";
   }
 
-  return `${items.length} invoice${items.length === 1 ? '' : 's'} available.`;
+  return `${items.length} invoice${items.length === 1 ? "" : "s"} available.`;
 }
 
 function mergeInvoices(optimisticInvoices, loadedInvoices) {
@@ -165,12 +158,10 @@ function mergeInvoices(optimisticInvoices, loadedInvoices) {
  *   that should appear immediately while backend syncs.
  * @returns {JSX.Element}
  */
-export default function InvoiceList({
-  loadInvoices = loadMockInvoices,
-  optimisticInvoices = [],
-}) {
+export default function InvoiceList({ loadInvoices = loadMockInvoices, optimisticInvoices = [] }) {
   const [invoices, setInvoices] = useState(null);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   const mergedInvoices = useMemo(
     () => mergeInvoices(optimisticInvoices, invoices ?? []),
@@ -189,14 +180,8 @@ export default function InvoiceList({
 
   useEffect(() => {
     let active = true;
-
-    // Reset states asynchronously to avoid synchronous set-state-in-effect warning
-    Promise.resolve().then(() => {
-      if (active) {
-        setInvoices(null);
-        setLoadError('');
-      }
-    });
+    setInvoices(null);
+    setLoadError("");
 
     async function load() {
       try {
@@ -208,9 +193,7 @@ export default function InvoiceList({
       } catch (error) {
         if (!active) return;
 
-        setLoadError(
-          copy.invoices.errorDescription || 'Unable to load invoices.'
-        );
+        setLoadError(copy.invoices.errorDescription || "Unable to load invoices.");
         setInvoices([]);
       }
     }
@@ -221,11 +204,25 @@ export default function InvoiceList({
     };
   }, [loadInvoices]);
 
+  useEffect(() => {
+    if (loadError) {
+      setStatusMessage("Invoice list failed to load.");
+      return;
+    }
+
+    if (invoices === null) {
+      setStatusMessage("Loading invoices.");
+      return;
+    }
+
+    setStatusMessage(getInvoiceAnnouncement(mergedInvoices));
+  }, [invoices, mergedInvoices, loadError]);
+
   if (loadError) {
     return (
       <div className="space-y-6">
         <ErrorBanner
-          title={copy.invoices.errorTitle || 'Unable to load invoices'}
+          title={copy.invoices.errorTitle || "Unable to load invoices"}
           description={loadError}
           previewLabel="Invoice list status"
         />
@@ -275,12 +272,7 @@ export default function InvoiceList({
                     <p className="text-sm font-medium uppercase tracking-[0.14em] text-slate-500">
                       Invoice
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-slate-100">
-                      {invoice.issuer}
-                    </p>
-                    {invoice.issuerAddress && (
-                      <AddressCopyButton address={invoice.issuerAddress} />
-                    )}
+                    <p className="mt-2 text-lg font-semibold text-slate-100">{invoice.issuer}</p>
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
@@ -293,9 +285,7 @@ export default function InvoiceList({
 
                 <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                      Amount
-                    </dt>
+                    <dt className="text-xs uppercase tracking-[0.24em] text-slate-500">Amount</dt>
                     <dd className="mt-2 text-sm text-slate-200">
                       {invoice.currency} {invoice.amount}
                     </dd>
@@ -307,9 +297,7 @@ export default function InvoiceList({
                     <dd className="mt-2 text-sm text-slate-200">{invoice.yield}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                      Due date
-                    </dt>
+                    <dt className="text-xs uppercase tracking-[0.24em] text-slate-500">Due date</dt>
                     <dd className="mt-2 text-sm text-slate-200">{invoice.dueDate}</dd>
                   </div>
                   <div>

@@ -12,10 +12,8 @@ function setup() {
 function renderWithProviders(ui) {
   return render(
     <ToastProvider>
-      <WalletProvider>
-        {ui}
-      </WalletProvider>
-    </ToastProvider>,
+      <WalletProvider>{ui}</WalletProvider>
+    </ToastProvider>
   );
 }
 
@@ -47,7 +45,7 @@ describe("WalletStatus", () => {
 
     expect(screen.getByRole("button", { name: /connect wallet/i })).toBeInTheDocument();
     expect(
-      screen.getByText(/connect your stellar wallet/i, { selector: "span" }),
+      screen.getByText(/connect your stellar wallet/i, { selector: "span" })
     ).toBeInTheDocument();
   });
 

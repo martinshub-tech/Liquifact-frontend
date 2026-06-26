@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import NavMenu from '../components/NavMenu';
+import { useState } from "react";
+import Link from "next/link";
 
-import { copy } from './copy/en';
-import NavMenu from '@/components/NavMenu';
-import { getHealth } from '../lib/api/health';
-import { safeJsonStringify } from '../lib/format/safeJson';
+import { copy } from "./copy/en";
+import NavMenu from "@/components/NavMenu";
+import { getHealth } from "../lib/api/health";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -15,29 +13,29 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 // Maps getHealth return values to badge styles and labels
 const getStatusConfig = (status) => {
   switch (status) {
-    case 'connected':
+    case "connected":
       return {
         label: copy.home.healthStatus.connected,
-        badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        icon: '✓',
+        badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+        icon: "✓",
       };
-    case 'degraded':
+    case "degraded":
       return {
         label: copy.home.healthStatus.degraded,
-        badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-        icon: '⚠',
+        badgeClass: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+        icon: "⚠",
       };
-    case 'unreachable':
+    case "unreachable":
       return {
         label: copy.home.healthStatus.unreachable,
-        badgeClass: 'bg-red-500/10 text-red-400 border-red-500/20',
-        icon: '✕',
+        badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+        icon: "✕",
       };
     default:
       return {
         label: status,
-        badgeClass: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-        icon: '?',
+        badgeClass: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+        icon: "?",
       };
   }
 };
@@ -89,7 +87,9 @@ export default function Home() {
             href="/invoices"
             className="block rounded-xl border border-slate-700 bg-slate-900/50 p-6 hover:border-cyan-500/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
           >
-            <h2 className="text-lg font-semibold text-cyan-400 mb-2">{copy.home.boxBusinessTitle}</h2>
+            <h2 className="text-lg font-semibold text-cyan-400 mb-2">
+              {copy.home.boxBusinessTitle}
+            </h2>
             <p className="text-slate-400 text-sm">{copy.home.boxBusinessSub}</p>
           </Link>
           <Link
@@ -117,19 +117,32 @@ export default function Home() {
             <div className="mt-4">
               {/* Structured health status card with color-coded badge */}
               {/* Status changes are announced politely via aria-live="polite" */}
-              <div role="status" aria-live="polite" className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
-
-                {/* Color-coded connection badge */}
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-lg border border-slate-700 bg-slate-800/50 p-4"
+              >
                 <div className="flex items-center gap-3 mb-3">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusConfig(health.status).badgeClass}`}>
+                  {/* Color-coded badge with icon and text - not color-only for accessibility */}
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusConfig(health.status).badgeClass}`}
+                  >
                     <span aria-hidden="true">{getStatusConfig(health.status).icon}</span>
                     <span>{getStatusConfig(health.status).label}</span>
                   </span>
                 </div>
+                <p className="text-sm text-slate-300">{health.message}</p>
 
-                {/* Human-readable connection summary */}
-                {health.message && (
-                  <p className="text-sm text-slate-300 mb-3">{health.message}</p>
+                {/* Details disclosure - keeps raw payload behind expandable section */}
+                {health.details && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-slate-400 hover:text-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
+                      {copy.home.healthStatus.viewDetails}
+                    </summary>
+                    <pre className="mt-2 text-xs text-slate-400 bg-slate-900/50 p-3 rounded overflow-x-auto">
+                      {JSON.stringify(health.details, null, 2)}
+                    </pre>
+                  </details>
                 )}
 
                 {/* Structured key/value summary — reads from the raw server payload */}

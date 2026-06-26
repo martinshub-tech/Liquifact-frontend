@@ -1,10 +1,6 @@
 import "@testing-library/jest-dom";
 import { act, render, screen } from "@testing-library/react";
-import {
-  getInvoiceLoadAnnouncement,
-  InvestMarketplace,
-  default as InvestPage,
-} from "../page";
+import { getInvoiceLoadAnnouncement, InvestMarketplace, default as InvestPage } from "../page";
 import { getInvoiceById, loadMockInvoices } from "../lib";
 
 jest.mock("next/link", () => {
@@ -27,7 +23,7 @@ function createDeferredLoader(invoices, delayMs = 0) {
     () =>
       new Promise((resolve) => {
         setTimeout(() => resolve(invoices), delayMs);
-      }),
+      })
   );
 }
 
@@ -99,27 +95,20 @@ describe("InvestMarketplace", () => {
 
     expect(screen.getByRole("list", { name: /loading investable invoices/i })).toHaveAttribute(
       "aria-busy",
-      "true",
+      "true"
     );
 
     await flushTimers(100);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "3 investable invoices loaded",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("3 investable invoices loaded");
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
-    expect(screen.getByRole("status")).toHaveAttribute(
-      "aria-live",
-      "polite",
-    );
+    expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
     expect(loadInvoices).toHaveBeenCalledTimes(1);
 
     rerender(<InvestMarketplace loadInvoices={loadInvoices} />);
 
     expect(loadInvoices).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "3 investable invoices loaded",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("3 investable invoices loaded");
   });
 
   it("renders each invoice as a focusable link to its detail route", async () => {
@@ -147,9 +136,9 @@ describe("InvestMarketplace", () => {
     render(<InvestMarketplace loadInvoices={createDeferredLoader(invoices, 0)} />);
     await flushTimers(0);
 
-    const links = screen.getAllByRole("link").filter((link) =>
-      link.getAttribute("href").startsWith("/invest/"),
-    );
+    const links = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href").startsWith("/invest/"));
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute("href", "/invest/inv-001");
     expect(links[1]).toHaveAttribute("href", "/invest/inv-002");
@@ -165,11 +154,9 @@ describe("InvestMarketplace", () => {
 
     await flushTimers(100);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "No invoices available",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("No invoices available");
     expect(
-      screen.getByText(/No investable invoices\. Connect wallet to see the marketplace\./i),
+      screen.getByText(/No investable invoices\. Connect wallet to see the marketplace\./i)
     ).toBeInTheDocument();
   });
 
@@ -178,18 +165,16 @@ describe("InvestMarketplace", () => {
       () =>
         new Promise((_, reject) => {
           setTimeout(() => reject(new Error("boom")), 50);
-        }),
+        })
     );
 
     render(<InvestMarketplace loadInvoices={loadInvoices} />);
 
     await flushTimers(50);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Unable to load investable invoices.",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Unable to load investable invoices.");
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Unable to load investable invoices right now.",
+      "Unable to load investable invoices right now."
     );
   });
 
@@ -198,7 +183,7 @@ describe("InvestMarketplace", () => {
       () =>
         new Promise((resolve) => {
           setTimeout(() => resolve([]), 100);
-        }),
+        })
     );
 
     const { unmount } = render(<InvestMarketplace loadInvoices={loadInvoices} />);
@@ -214,7 +199,7 @@ describe("InvestMarketplace", () => {
       () =>
         new Promise((_, reject) => {
           setTimeout(() => reject(new Error("boom")), 100);
-        }),
+        })
     );
 
     const { unmount } = render(<InvestMarketplace loadInvoices={loadInvoices} />);
@@ -230,7 +215,7 @@ describe("getInvoiceLoadAnnouncement", () => {
   it("returns the expected announcement for loaded and empty states", () => {
     expect(getInvoiceLoadAnnouncement([])).toBe("No invoices available");
     expect(getInvoiceLoadAnnouncement([{ id: "1" }, { id: "2" }])).toBe(
-      "2 investable invoices loaded",
+      "2 investable invoices loaded"
     );
   });
 });

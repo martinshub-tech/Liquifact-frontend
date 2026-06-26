@@ -1,4 +1,4 @@
-import { copy } from '../app/copy/en';
+import { copy } from "../app/copy/en";
 
 /**
  * @typedef {Object} FooterLink
@@ -39,8 +39,8 @@ export default function Footer() {
           <a
             key={link.href}
             href={link.href}
-            target={link.external ? '_blank' : undefined}
-            rel={link.external ? 'noopener noreferrer' : undefined}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noopener noreferrer" : undefined}
             className="inline-block py-3 hover:text-cyan-400 transition-colors"
           >
             {link.label}

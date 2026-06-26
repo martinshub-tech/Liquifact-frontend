@@ -1,10 +1,5 @@
 import "@testing-library/jest-dom";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 import Home from "./page";
 import { getHealth } from "../lib/api/health";
@@ -81,9 +76,7 @@ describe("Home Page Health Check", () => {
       expect(button).toBeDisabled();
     });
 
-    expect(
-      screen.getByText(/checking/i)
-    ).toBeTruthy();
+    expect(screen.getByText(/checking/i)).toBeTruthy();
   });
 
   it("renders connected state with green badge", async () => {
@@ -104,9 +97,7 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getAllByText(/backend is healthy/i).length
-      ).toBeGreaterThan(0);
+      expect(screen.getByText(/backend is healthy/i)).toBeTruthy();
     });
 
     // Assert the "Connected" badge is rendered
@@ -131,9 +122,7 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getAllByText(/backend responded with 500/i).length
-      ).toBeGreaterThan(0);
+      expect(screen.getByText(/backend responded with 500/i)).toBeTruthy();
     });
 
     // Assert the "Degraded" badge is rendered
@@ -155,9 +144,7 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getAllByText(/health check timed out/i).length
-      ).toBeGreaterThan(0);
+      expect(screen.getByText(/health check timed out/i)).toBeTruthy();
     });
 
     // Assert the "Unreachable" badge is rendered
@@ -182,9 +169,7 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/raw response/i)
-      ).toBeTruthy();
+      expect(screen.getByText(/view details/i)).toBeTruthy();
     });
   });
 
@@ -259,8 +244,6 @@ describe("Home Page Health Check", () => {
 
     const statusRegion = await screen.findByRole("status");
 
-    expect(
-      statusRegion.getAttribute("aria-live")
-    ).toBe("polite");
+    expect(statusRegion.getAttribute("aria-live")).toBe("polite");
   });
 });

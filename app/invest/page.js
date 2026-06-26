@@ -1,8 +1,7 @@
 // client directive
 "use client";
-
-import { useCallback, useEffect, useRef, useState, Suspense } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Button from "@/components/Button";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ErrorBanner from "@/components/ErrorBanner";
 import InvoiceCard from "@/components/InvoiceCard";
@@ -22,7 +21,7 @@ const DEV_DELAY = process.env.NODE_ENV === "development" ? 1500 : 0;
 
 export function getInvoiceLoadAnnouncement(
   invoices,
-  { filterActive = false, filteredCount = 0 } = {},
+  { filterActive = false, filteredCount = 0 } = {}
 ) {
   if (!Array.isArray(invoices) || invoices.length === 0) {
     return "No invoices available";
@@ -202,7 +201,10 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
     setTimeout(() => {
       loadMoreRef.current?.focus();
     }, 0);
-  };
+  }, [invoices]);
+
+  // â”€â”€ Derived values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const visibleInvoices = Array.isArray(invoices) ? invoices.slice(0, visibleCount) : [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -225,10 +227,7 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
 
         <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/30 p-6">
           <div className="flex flex-wrap gap-4 items-center">
-            <InvoiceSearch
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
+            <InvoiceSearch value={searchQuery} onChange={handleSearchChange} />
             <InvoiceFilters
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -246,10 +245,14 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
           />
         ) : invoices === null ? (
           <InvoiceListSkeleton rows={3} />
-        ) : invoices.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-300">{copy.invest.emptyState}</div>
+        ) : allInvoices.length === 0 ? (
+          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-300">
+            {copy.invest.emptyState}
+          </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-300">No invoices match your filters.</div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-300">
+            No invoices match your filters.
+          </div>
         ) : (
           <>
             <ul className="space-y-4">
@@ -261,9 +264,7 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
                     aria-label={`View details for ${inv.issuer} invoice ${inv.id}`}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-slate-100">
-                        {inv.issuer}
-                      </span>
+                      <span className="font-medium text-slate-100">{inv.issuer}</span>
                       <span className="text-xs font-semibold px-2 py-1 rounded-full bg-cyan-900/60 text-cyan-300">
                         {inv.status}
                       </span>
@@ -288,7 +289,8 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
             />
 
             <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/30 p-4 text-sm text-slate-300">
-              Note: Yield references are educational only and reflect on-chain basis-point assumptions. Invoice contracts settle at maturity.
+              Note: Yield references are educational only and reflect on-chain basis-point
+              assumptions. Invoice contracts settle at maturity.
             </div>
           </>
         )}

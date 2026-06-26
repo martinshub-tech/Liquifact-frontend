@@ -51,9 +51,31 @@ describe("InvoiceListSkeleton", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("matches snapshot", () => {
-    const { asFragment } = render(<InvoiceListSkeleton rows={2} />);
-    expect(asFragment()).toMatchSnapshot();
+  it("renders custom number of rows", () => {
+    const { container } = render(<InvoiceListSkeleton rows={5} />);
+    const list = container.querySelector("ul");
+    expect(list.children).toHaveLength(5);
+  });
+
+  it("has aria-busy true", () => {
+    const { container } = render(<InvoiceListSkeleton />);
+    expect(container.querySelector("ul").getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("has descriptive aria-label", () => {
+    const { container } = render(<InvoiceListSkeleton />);
+    expect(container.querySelector("ul").getAttribute("aria-label")).toBe(
+      "Loading investable invoices"
+    );
+  });
+
+  it("each row has animate-pulse class", () => {
+    const { container } = render(<InvoiceListSkeleton rows={2} />);
+    const items = container.querySelectorAll("li");
+    expect(items).toHaveLength(2);
+    items.forEach((item) => {
+      expect(item.className).toContain("animate-pulse");
+    });
   });
 
   it("verifies the stable, deterministic key strategy for list items", () => {
@@ -65,4 +87,3 @@ describe("InvoiceListSkeleton", () => {
     });
   });
 });
-
