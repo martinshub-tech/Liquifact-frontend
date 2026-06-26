@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import { copy } from "./copy/en";
-import NavMenu from "@/components/NavMenu";
-import { getHealth } from "../lib/api/health";
-import { safeJsonStringify } from "@/lib/format/safeJson";
+import { copy } from './copy/en';
+import { getHealth } from '../lib/api/health';
+import NavMenu from '../components/NavMenu';
+import { extractKnownFields, safeJsonStringify } from '../lib/format/safeJson';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -132,13 +132,24 @@ export default function Home() {
                     <span>{getStatusConfig(health.status).label}</span>
                   </span>
                 </div>
+                
+                {/* Structured summary for recognized fields */}
+                <div className="text-xs text-slate-300 space-y-1 mb-3">
+                  {Object.entries(extractKnownFields(health.details || health)).map(([key, value]) => (
+                    <div key={key}>
+                      <span className="text-slate-500 font-semibold">{key}:</span>{' '}
+                      <span className="text-slate-300">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+
                 <p className="text-sm text-slate-300">{health.message}</p>
 
                 {/* Details disclosure - keeps raw payload behind expandable section */}
                 {health.details && (
                   <details className="mt-3">
                     <summary className="cursor-pointer text-sm text-slate-400 hover:text-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
-                      {copy.home.healthStatus.viewDetails}
+                      {copy.home.healthStatus.rawResponse}
                     </summary>
                     <pre className="mt-2 text-xs text-slate-400 bg-slate-900/50 p-3 rounded overflow-x-auto">
                       {safeJsonStringify(health.details)}

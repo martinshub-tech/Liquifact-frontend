@@ -1,14 +1,12 @@
 // client directive
 "use client";
-import Button from "@/components/Button";
+import Button from '@/components/Button';
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import ErrorBanner from "@/components/ErrorBanner";
 import InvoiceCard from "@/components/InvoiceCard";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import Pagination from "@/components/Pagination";
-import InvoiceSearch from "@/components/InvoiceSearch";
-import InvoiceFilters, { DEFAULT_FILTERS, hasActiveFilters } from "@/components/InvoiceFilters";
 import { copy } from "../copy/en";
 import { fetchInvestableInvoices } from "../../lib/api/invoices";
 import InvoiceSearch from "@/components/InvoiceSearch";
@@ -96,14 +94,22 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // ── Derived values & handlers ─────────────────────────────────────────────
-  const allInvoices = Array.isArray(invoices) ? invoices : [];
+  // Reset paging when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    setPaginationAnnouncement("");
+  }, [debouncedQuery, filters]);
+
+  // ——————————————————————————————————————————————————————————————————————————
+  const allInvoices = useMemo(() => Array.isArray(invoices) ? invoices : [], [invoices]);
 
   const filteredInvoices = useMemo(() => {
-    let result = [...allInvoices];
-    const q = debouncedQuery.trim().toLowerCase();
+    if (!Array.isArray(invoices)) return [];
 
-    if (q) {
+    let result = invoices;
+
+    if (debouncedQuery.trim()) {
+      const q = debouncedQuery.trim().toLowerCase();
       result = result.filter((inv) => inv.issuer.toLowerCase().includes(q));
     }
 
@@ -169,20 +175,26 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
     }
 
     return result;
-  }, [allInvoices, debouncedQuery, filters]);
+  }, [invoices, debouncedQuery, filters]);
 
-  const filterActive =
-    hasActiveFilters(filters) || Boolean(debouncedQuery.trim());
+  const visibleInvoices = useMemo(() => {
+    return filteredInvoices.slice(0, visibleCount);
+  }, [filteredInvoices, visibleCount]);
 
-  const baseStatusMessage =
-    loadError || invoices === null
-      ? loadError
-        ? copy.invest.errorStatus
-        : ""
-      : getInvoiceLoadAnnouncement(allInvoices, {
-          filterActive,
-          filteredCount: filteredInvoices.length,
-        });
+  const filterActive = useMemo(() => {
+    return hasActiveFilters(filters) || Boolean(debouncedQuery.trim());
+  }, [filters, debouncedQuery]);
+
+  const baseStatusMessage = useMemo(() => {
+    if (loadError || invoices === null) {
+      return loadError ? copy.invest.errorStatus : "";
+    }
+    return getInvoiceLoadAnnouncement(allInvoices, {
+      filterActive,
+      filteredCount: filteredInvoices.length,
+    });
+  }, [loadError, invoices, allInvoices, filterActive, filteredInvoices.length]);
+
   const statusMessage = paginationAnnouncement || baseStatusMessage;
 
   const handleSearchChange = useCallback((value) => {
@@ -191,6 +203,12 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
     setPaginationAnnouncement("");
   }, []);
 
+  // ——————————————————————————————————————————————————————————————————————————
+  /**
+   * Appends the next PAGE_SIZE items and updates the live-region status.
+   * Focus is moved back to the "Load more" button (if it still exists) so
+   * keyboard users do not lose their place in the page.
+   */
   const handleLoadMore = useCallback(() => {
     setVisibleCount((prev) => {
       const next = Math.min(prev + PAGE_SIZE, filteredInvoices.length || prev);
@@ -204,8 +222,6 @@ export function InvestMarketplace({ loadInvoices = fetchInvestableInvoices }) {
       loadMoreRef.current?.focus();
     }, 0);
   }, [filteredInvoices.length]);
-
-  const visibleInvoices = filteredInvoices.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">

@@ -286,69 +286,18 @@ Handling network-level and unpredictable failures is critical to maintaining a r
 
 ---
 
----
+## Payload Safety & Truncation Guards
 
-## Request Cancellation Guard
+To prevent client-side performance degradation or Denial of Service (DoS) attacks from oversized or deeply nested backend payloads, the frontend uses safety guards in the `lib/format/safeJson` utility module.
 
-### Problem
+### Safe JSON Formatting Utilities
 
-The home page health check is triggered by a button click and resolves asynchronously. If the component unmounts (navigation, hot-reload, React strict-mode double-mount) before the response arrives, the pending `setHealth` / `setLoading` calls land on an unmounted component — causing the classic "state update on unmounted component" warning and potential memory leaks.
+These utilities clean, depth-limit, and truncate data before rendering or parsing:
 
-### Solution: AbortController + mounted guard
-
-`getHealth` accepts an optional `signal` option. Passing a component-owned `AbortSignal` lets the function cancel the in-flight network request immediately on unmount and re-throw the resulting `AbortError` so the caller can skip state updates entirely.
-
-#### `lib/api/health.js` — external signal support
-
-```js
-// Propagate external abort into the internal controller
-if (signal) {
-  signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true });
-}
-
-// In the catch block:
-if (err?.name === 'AbortError') {
-  if (signal?.aborted) throw err;          // caller's signal — rethrow
-  return { status: 'unreachable', ... };   // internal timeout — return status
-}
-```
-
-#### `app/page.js` — component-side guard
-
-```js
-const abortRef = useRef(null);
-
-// Abort on unmount
-useEffect(() => () => abortRef.current?.abort(), []);
-
-const checkApi = async () => {
-  abortRef.current?.abort();               // cancel any previous request
-  const controller = new AbortController();
-  abortRef.current = controller;
-
-  setLoading(true);
-  try {
-    const result = await getHealth(API_URL, { signal: controller.signal });
-    if (controller.signal.aborted) return; // race-condition guard
-    setHealth(result);
-  } catch (err) {
-    if (err?.name === 'AbortError') return; // non-error: unmount or re-click
-  } finally {
-    if (!controller.signal.aborted) setLoading(false);
-  }
-};
-```
-
-### Why both signal and post-await guard?
-
-| Guard | Catches |
-|---|---|
-| `signal` passed to `getHealth` | Cancels the network request; `getHealth` re-throws `AbortError` |
-| `controller.signal.aborted` after `await` | Handles the narrow window where the response resolves between the `await` and the setter |
-
-### Abort is a non-error
-
-An `AbortError` caused by unmount (or a second click) is silently ignored — no error banner, no toast, no console warning.
+- **`truncateString(value, maxLength)`**: Limits the character length of a coerced string (default: 2000 characters). If the string exceeds the limit, it is sliced and appended with a `…(truncated)` marker.
+- **`limitDepth(obj, maxDepth)`**: Traverses an object or array and replaces any node nesting deeper than `maxDepth` (default: 5) with `"[Depth limit reached]"`. It also detects circular references and replaces them with `"[Circular]"` to prevent serialization crashes.
+- **`extractKnownFields(obj, fields)`**: Filters an object to only include specified allowed keys (default: `['status', 'message', 'version']`), ignoring other fields.
+- **`safeJsonStringify(obj, options)`**: Wraps the depth limitation, standard serialization, and truncation workflows into a single helper. In case of unexpected serialization errors (e.g. nested BigInts), it gracefully falls back to a plain string representation of the object.
 
 ---
 

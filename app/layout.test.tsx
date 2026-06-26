@@ -25,12 +25,12 @@ jest.mock("../components/Footer", () => {
 
 jest.mock("../components/ToastProvider", () => {
   const React = require("react");
-  const MockToastContext = React.createContext(null);
+  const ToastContext = React.createContext(null);
   return {
     ToastProvider({ children }: { children: React.ReactNode }) {
       return <>{children}</>;
     },
-    ToastContext: MockToastContext,
+    ToastContext,
   };
 });
 

@@ -144,7 +144,9 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/health check timed out/i)).toBeTruthy();
+      expect(
+        screen.getAllByText(/health check timed out/i).length
+      ).toBeGreaterThan(0);
     });
 
     // Assert the "Unreachable" badge is rendered
@@ -169,7 +171,9 @@ describe("Home Page Health Check", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/view details/i)).toBeTruthy();
+      expect(
+        screen.getByText(/raw response/i)
+      ).toBeTruthy();
     });
   });
 

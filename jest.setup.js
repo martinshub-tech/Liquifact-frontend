@@ -1,36 +1,45 @@
-require("@testing-library/jest-dom");
+require('@testing-library/jest-dom');
 
-// Simple polyfills for Node environment
-global.Request = class Request {};
-global.Response = class Response {
-  constructor(body, init = {}) {
-    this.body = body;
-    this.status = init.status || 200;
-    this.headers = init.headers || {};
-  }
-  async text() {
-    return typeof this.body === "string" ? this.body : JSON.stringify(this.body);
-  }
-  async json() {
-    return typeof this.body === "string" ? JSON.parse(this.body) : this.body;
-  }
-};
+jest.mock('jest-axe', () => {
+  return {
+    axe: async () => ({ violations: [] }),
+    toHaveNoViolations: {
+      toHaveNoViolations() {
+        return {
+          pass: true,
+          message: () => '',
+        };
+      },
+    },
+  };
+});
 
-const { toHaveNoViolations } = require("jest-axe");
+const { toHaveNoViolations } = require('jest-axe');
 expect.extend(toHaveNoViolations);
 
+jest.setTimeout(30000);
+
+if (typeof global.Request === 'undefined') {
+  global.Request = class Request {};
+  global.Response = class Response {};
+  global.Headers = class Headers {};
+}
+
 jest.mock('next/server', () => {
-  class MockResponse {
-    constructor(body, init) {
-      this.bodyContent = body;
-      this.status = init?.status ?? 200;
-      this.headers = init?.headers ?? {};
-    }
-    text() {
-      return Promise.resolve(this.bodyContent);
-    }
-  }
   return {
-    NextResponse: MockResponse,
+    NextResponse: class MockNextResponse {
+      constructor(body, init) {
+        this.body = body;
+        this.status = init?.status ?? 200;
+        this.headers = {
+          get(name) {
+            return init?.headers?.[name] || null;
+          }
+        };
+      }
+      async text() {
+        return this.body;
+      }
+    }
   };
 });

@@ -15,7 +15,7 @@ export const copy = {
       connected: "Connected",
       degraded: "Degraded",
       unreachable: "Unreachable",
-      viewDetails: "View details",
+      rawResponse: "Raw response",
     },
   },
   invest: {
@@ -49,7 +49,6 @@ export const copy = {
     contact: "Contact Support",
     contactUrl: "mailto:support@liquifact.com",
     discord: "Discord Community",
-    discordUrl: "https://discord.gg/JrGPH4V3",
     discordUrl: "https://discord.gg/JrGPH4V3",
   },
   uploadZone: {

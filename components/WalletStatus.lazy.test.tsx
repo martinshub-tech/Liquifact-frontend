@@ -5,8 +5,8 @@ import { axe, toHaveNoViolations } from "jest-axe";
 import "@testing-library/jest-dom";
 
 // ── Mock next/dynamic so we can control lazy-load timing in tests ──
-jest.mock("next/dynamic", () => {
-  const React = require("react");
+jest.mock('next/dynamic', () => {
+  const React = require('react');
   return function dynamicMock(importFunc: () => Promise<any>, options: any) {
     const LazyComponent = mockReact.lazy(importFunc);
 
@@ -70,15 +70,17 @@ jest.mock("./WalletContext", () => ({
   },
 }));
 
-// Mock ToastProvider to avoid context errors
-jest.mock("./ToastProvider", () => ({
-  ToastProvider: ({ children }) => <>{children}</>,
+jest.mock('./ToastProvider', () => ({
   useToast: () => ({
-    toast: jest.fn(),
-    dismiss: jest.fn(),
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
   }),
 }));
-import { WALLET_STATES } from "./WalletStatus";
+
+// Import after mocks are set up
+import WalletStatusLazy from './WalletStatusLazy';
+import { WALLET_STATES } from './WalletStatus';
 
 expect.extend(toHaveNoViolations);
 
