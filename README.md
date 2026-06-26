@@ -37,15 +37,25 @@ Part of the LiquiFact stack: **frontend** (this repo) | **backend** (Express API
 
 ## Development
 
-| Command            | Description                     |
-|-------------------|---------------------------------|
-| `npm run dev`     | Start dev server (Turbopack)   |
-| `npm run lint`    | Run ESLint                      |
-| `npm test`        | Run accessibility tests (Jest) |
-| `npm run build`   | Production build                |
-| `npm run start`   | Start production server         |
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start dev server (Turbopack) |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run Jest/jsdom unit and accessibility tests |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run test:e2e` | Run Playwright smoke tests |
 
-Default: http://localhost:3000. The home page can check API health at `NEXT_PUBLIC_API_URL` (default http://localhost:3001).
+### Environment variables
+
+| Variable | Required | Default | Used by |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | No | `http://localhost:3001` | [app/page.js](app/page.js) |
+| `NEXT_PUBLIC_STELLAR_NETWORK` | No | Unset | [WALLET_INTEGRATION_CONTRACT.md](WALLET_INTEGRATION_CONTRACT.md) |
+
+`NEXT_PUBLIC_*` values are exposed to the browser and must never contain secrets.
+
+Default: http://localhost:3000. The home page can check API health at `NEXT_PUBLIC_API_URL` (default `http://localhost:3001`).
 
 ---
 
@@ -115,6 +125,8 @@ We welcome UI improvements, new pages (e.g., invoice upload, marketplace), and S
 
 See [COMPONENTS.md](COMPONENTS.md) for the full component library reference — props, accessibility notes, and usage examples for every shared component (`ErrorBanner`, `Footer`, `InvoiceListSkeleton`, `ToastProvider`, `UploadZone`, `WalletStatus`).
 
+The `Footer` component now renders real destination links sourced from `app/copy/en.js`, including external documentation, system status, contact support, and a Discord community link with secure `target="_blank" rel="noopener noreferrer"` handling.
+
 ---
 
 ## Design Tokens
@@ -123,8 +135,8 @@ Global tokens are defined in `app/globals.css` and used across all components.
 
 | Token             | Value     | Tailwind equivalent |
 |-------------------|-----------|--------------------|
-| `--color-bg`      | `#0f0f0f` | `slate-950`        |
-| `--color-primary` | `#06b6d4` | `cyan-400`         |
+| `--color-bg`      | `#020617` | `slate-950`        |
+| `--color-primary` | `#22d3ee` | `cyan-400`         |
 
 Font: **Geist** is loaded via `next/font/google` (see `app/layout.js`). Headings use `font-bold`; body copy uses the default weight.
 
@@ -137,6 +149,7 @@ See [TESTING.md](TESTING.md) for the full guide covering Jest unit/accessibility
 ### Notes about newly added tests
 
 - `app/page.test.tsx` — Unit tests covering the Home page API health check interaction (success, network error, and loading/disabled button states). These tests mock `global.fetch` and use `@testing-library/user-event` for interaction. They are intended to improve coverage for the home page health-check flow.
+- `components/ToastProvider.dedupe.test.tsx` — Covers the bounded toast queue, duplicate collapse, timer refresh, hover pause/resume, and cleanup on unmount. The visible stack is capped to three so repeat errors do not cover the viewport.
 
 
 ---
@@ -200,19 +213,31 @@ For frontend/backend contract details see:
 
 ## Development
 
-| Command            | Description                  |
-| ------------------ | ---------------------------- |
-| `npm run dev`      | Start dev server (Turbopack) |
-| `npm run build`    | Production build             |
-| `npm run start`    | Start production server      |
-| `npm run lint`     | Run ESLint                   |
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start dev server (Turbopack) |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run Jest/jsdom unit and accessibility tests |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
 | `npm run test:e2e` | Run Playwright smoke tests (toast & invest marketplace) |
+
+### Environment variables
+
+| Variable | Required | Default | Used by |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | No | `http://localhost:3001` | [app/page.js](app/page.js) |
+| `NEXT_PUBLIC_STELLAR_NETWORK` | No | Unset | [WALLET_INTEGRATION_CONTRACT.md](WALLET_INTEGRATION_CONTRACT.md) |
+
+`NEXT_PUBLIC_*` values are exposed to the browser and must never contain secrets.
 
 Default: [http://localhost:3000](http://localhost:3000). The home page can check API health at `NEXT_PUBLIC_API_URL` (default `http://localhost:3001`).
 
+The invoices page header also uses the shared `NavMenu` component, replacing the old bespoke header so navigation and wallet entry stay consistent across routes.
+
 ### Marketplace search
 
-The Invest page (`app/invest/page.js`) includes an issuer search field above the invoice list. Typing in the field filters invoices by case-insensitive substring match on `issuer`. Input is debounced at **200ms** to avoid thrashing on every keystroke. When a filter is active, the `aria-live` status region announces the match count (e.g. "2 of 3 invoices match"). A distinct "no matches" state is shown when the filter yields zero results, separate from the empty-marketplace state.
+The Invest page (`app/invest/page.js`) includes an issuer search field above the invoice list. Typing in the field filters invoices by case-insensitive substring match on `issuer`. Input is debounced at **200ms** so the text field stays responsive while filtering waits for settled input. When a filter is active, the `aria-live` status region announces the match count (e.g. "2 of 3 invoices match"). A distinct "no matches" state is shown when the filter yields zero results, separate from the empty-marketplace state.
 
 ---
 
@@ -235,7 +260,7 @@ liquifact-frontend/
 │           └── not-found.js # Unknown invoice fallback
 ├── components/
 │   ├── WalletStatus.jsx    # Wallet connection UI
-│   └── WalletContext.jsx   # Shared wallet state provider
+│   └── WalletProvider.jsx  # Single source of truth for shared wallet state
 ├── public/
 ├── .env.local.example
 ├── eslint.config.mjs
@@ -315,7 +340,15 @@ We welcome UI improvements, new pages (e.g. invoice upload, marketplace), and St
 ## UI Components
 
 See [COMPONENTS.md](COMPONENTS.md) for the full component library reference — props, accessibility notes, and usage examples for every shared component (`ErrorBanner`, `Footer`, `InvoiceListSkeleton`, `ToastProvider`, `UploadZone`, `WalletProvider`, `WalletStatus`).
+## Invoice List
 
+The invoices page now renders an SME invoice table below `UploadZone` using `InvoiceList`.
+
+- `InvoiceList` accepts an injectable `loadInvoices` prop so data loading can be mocked during tests and swapped for a backend API later.
+- While invoices are loading, it renders `InvoiceListSkeleton` and exposes a polite `aria-live` status region for assistive technology.
+- If no invoices are returned, it shows `copy.invoices.emptyState` text.
+- If invoice loading fails, an accessible `ErrorBanner` is displayed with localized fallback copy.
+- After `UploadZone` successfully uploads a document, `onUploadSuccess` appends a new optimistic invoice entry immediately without requiring a manual browser refresh.
 ### Wallet connection (`WalletProvider`)
 
 Wallet state is shared app-wide via `WalletProvider`, mounted in `app/layout.js` inside `ToastProvider`. Any client component can read connection state with `useWallet()`:
@@ -388,8 +421,8 @@ export default function MyPage() {
 ## Design Tokens
 
 - **Colors**
-  - `--color-bg`: `#0f0f0f` (slate‑950)
-  - `--color-primary`: `#06b6d4` (cyan‑400)
+  - `--color-bg`: `#020617` (slate‑950)
+  - `--color-primary`: `#22d3ee` (cyan‑400)
 
 - **Typography**
   - Font family: **Geist** – imported via `@fontsource/geist`.
@@ -406,13 +439,15 @@ The home page health check now:
 - Uses an 8 second timeout.
 - Aborts hung requests.
 - Safely handles HTML and malformed JSON responses.
-- Reports one of the following:
+- Reports one of the following status states with distinct visual treatments:
 
-  - Connected
-  - Degraded
-  - Unreachable
+  - **Connected** (green badge with ✓ icon) — Backend is healthy and responding correctly
+  - **Degraded** (amber badge with ⚠ icon) — Backend responded but with an error status (e.g., HTTP 500)
+  - **Unreachable** (red badge with ✕ icon) — Backend could not be reached or request timed out
 
-- Provides a detailed disclosure for raw responses.
+- Provides a detailed disclosure for raw responses behind an expandable `<details>` element
+- Status changes are announced politely via `aria-live="polite"` for accessibility
+- Badges include both color and text/icons (not color-only) to meet accessibility requirements
 
 ## Contracts
 

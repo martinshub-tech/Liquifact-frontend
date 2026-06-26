@@ -1,6 +1,16 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ToastContext } from './ToastProvider';
+
+/**
+ * Read the toast API when available. Returns null when WalletProvider is
+ * rendered outside a ToastProvider (e.g. in isolated unit tests).
+ * @returns {{ success: Function, error: Function, info: Function } | null}
+ */
+function useOptionalToast() {
+  return useContext(ToastContext);
+}
 
 export const WALLET_STATES = {
   DISCONNECTED: 'disconnected',
@@ -153,6 +163,7 @@ export function WalletProvider({ children }) {
   const [state, setState] = useState(WALLET_STATES.DISCONNECTED);
   const [walletData, setWalletData] = useState(null);
   const skipPersistRef = useRef(true);
+  const toast = useOptionalToast();
 
   useEffect(() => {
     const snapshot = readStoredSnapshot();
@@ -192,18 +203,20 @@ export function WalletProvider({ children }) {
       setState(WALLET_STATES.CONNECTING);
 
       setTimeout(() => {
-        const scenarios = ['success', 'error', 'wrong_network'];
+        const scenarios = ['success', 'error', 'wrong_network', 'no_wallet'];
         const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
 
         switch (scenario) {
           case 'success':
             setState(WALLET_STATES.CONNECTED);
             setWalletData(MOCK_WALLET_DATA);
+            toast?.success('Wallet connected successfully.', 'Wallet connected');
             resolve({ outcome: 'success' });
             break;
           case 'error':
             setState(WALLET_STATES.ERROR);
             setWalletData(null);
+            toast?.error('Failed to connect to wallet. Please try again.', 'Connection failed');
             resolve({
               outcome: 'error',
               message: 'Failed to connect to wallet. Please try again.',
@@ -212,15 +225,28 @@ export function WalletProvider({ children }) {
           case 'wrong_network':
             setState(WALLET_STATES.WRONG_NETWORK);
             setWalletData(null);
+            toast?.error(
+              'Wallet is connected to testnet. Please switch to public network.',
+              'Wrong network',
+            );
             resolve({
               outcome: 'wrong_network',
               message: 'Wallet is connected to testnet. Please switch to public network.',
             });
             break;
+          case 'no_wallet':
+            setState(WALLET_STATES.NO_WALLET);
+            setWalletData(null);
+            toast?.error('No Stellar wallet detected. Install one to continue.', 'No wallet');
+            resolve({
+              outcome: 'no_wallet',
+              message: 'No Stellar wallet detected. Install one to continue.',
+            });
+            break;
         }
       }, 1500);
     });
-  }, []);
+  }, [toast]);
 
   const disconnect = useCallback(() => {
     setState(WALLET_STATES.DISCONNECTED);
@@ -239,6 +265,7 @@ export function WalletProvider({ children }) {
 /**
  * Access shared wallet state and actions. Must be used within {@link WalletProvider}.
  *
+ * Canonical hook shape:
  * @returns {{
  *   state: string,
  *   walletData: { address: string, network: string, balance?: string } | null,

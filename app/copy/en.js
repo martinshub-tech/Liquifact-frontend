@@ -10,6 +10,13 @@ export const copy = {
     apiStatus: "API status",
     checkApiHealth: "Check backend health",
     checking: "Checking\u2026",
+    // Health status states - maps to getHealth return values
+    healthStatus: {
+      connected: "Connected",
+      degraded: "Degraded",
+      unreachable: "Unreachable",
+      viewDetails: "View details",
+    },
   },
   invest: {
     title: "Invest",
@@ -25,6 +32,8 @@ export const copy = {
     title: "Invoices",
     subtext: "Upload and tokenize invoices. List will be wired to the API and Stellar.",
     emptyState: "No invoices yet. Connect wallet and upload your first invoice.",
+    errorTitle: "Unable to load invoices",
+    errorDescription: "There was a problem loading your invoices. Please try again later.",
     backToHome: "\u2190 LiquiFact",
     connectWallet: "Connect Wallet",
   },
@@ -34,7 +43,14 @@ export const copy = {
   },
   footer: {
     docs: "Documentation",
+    docsUrl: "https://docs.liquifact.com",
     status: "System Status",
+    statusUrl: "https://status.liquifact.com",
+    contact: "Contact Support",
+    contactUrl: "mailto:support@liquifact.com",
+    discord: "Discord Community",
+    discordUrl: "https://discord.gg/JrGPH4V3",
+  }
     contact: "Contact Support",
   },
   uploadZone: {

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { act, render, screen, waitFor } from '@testing-library/react';
-import { renderToString } from 'react-dom/server';
+import { renderToString } from 'react-dom/server.node';
 import {
   WalletProvider,
   WALLET_STATES,
@@ -238,7 +238,7 @@ describe('WalletProvider', () => {
   });
 
   it('clears storage when connect resolves to error', async () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    jest.spyOn(Math, 'random').mockReturnValue(0.26); // index 1 of 4 → error
 
     renderWithProvider();
 
@@ -254,7 +254,7 @@ describe('WalletProvider', () => {
   });
 
   it('clears storage when connect resolves to wrong network', async () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.9);
+    jest.spyOn(Math, 'random').mockReturnValue(0.51); // index 2 of 4 → wrong_network
 
     renderWithProvider();
 

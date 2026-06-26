@@ -2,6 +2,17 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import Home from './page';
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/',
+}));
+
+jest.mock('../components/WalletStatusLazy', () => ({
+  __esModule: true,
+  default: function MockWalletStatusLazy() {
+    return <button type="button">Connect Wallet</button>;
+  },
+}));
+
 jest.mock('next/link', () => {
   function MockLink({ href, children, ...props }) {
     return (

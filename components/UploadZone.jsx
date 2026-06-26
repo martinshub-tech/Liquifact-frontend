@@ -72,7 +72,7 @@ function Spinner({ className = '' }) {
   );
 }
 
-function UploadZone() {
+function UploadZone({ onUploadSuccess }) {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState(null);
@@ -139,6 +139,17 @@ function UploadZone() {
         await new Promise((r) => setTimeout(r, tokenizationDelay));
       }
       setStatus('success');
+      if (typeof onUploadSuccess === 'function') {
+        onUploadSuccess({
+          id: `upload-${Date.now()}-${file.name}`,
+          issuer: file.name,
+          amount: 'Pending',
+          currency: 'USD',
+          dueDate: 'Pending',
+          yield: 'Pending',
+          status: 'Pending tokenization',
+        });
+      }
     } catch (err) {
       setError(err.message || 'Upload failed. Please try again.');
       setStatus('idle');
