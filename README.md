@@ -284,13 +284,16 @@ All interactive elements (nav links, card links, buttons) use a consistent `focu
 
 ### Reduced-motion support
 
-All loading indicators (`animate-spin` spinners in `UploadZone` and `WalletStatus`,
-`animate-pulse` skeletons in `InvoiceListSkeleton`, `app/invest/loading.js`, and
-`app/invoices/loading.js`) respect the OS/browser **prefers-reduced-motion: reduce**
-preference. A single `@media (prefers-reduced-motion: reduce)` rule in
-`app/globals.css` collapses animation duration to near-zero globally, so motion
-stops while every loading indicator stays fully visible and `aria-busy` semantics
-remain intact for screen-reader users.
+Users who enable **prefers-reduced-motion** in their OS or browser settings receive a
+motion-safe experience automatically. A `@media (prefers-reduced-motion: reduce)` block
+in `app/globals.css` disables `animate-spin` (spinners) and `animate-pulse` (skeleton
+loaders) globally. Skeleton shapes and spinner SVGs remain visible — only the animation
+is removed. ARIA semantics (`aria-busy`, `role="status"`, `aria-live`) are unaffected,
+so screen-reader users always hear loading announcements regardless of motion preference.
+
+To verify manually: open DevTools → Rendering tab → set **"Emulate CSS media feature
+prefers-reduced-motion"** to `reduce`, then navigate to `/invoices` or `/invest` and
+confirm skeletons are visible without shimmer and spinners are static.
 
 ---
 
