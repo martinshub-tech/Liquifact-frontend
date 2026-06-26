@@ -211,6 +211,7 @@ None — API endpoint is read from `NEXT_PUBLIC_API_URL` (falls back to `http://
 
 | Export             | Description                                                     |
 | ------------------ | --------------------------------------------------------------- |
+| `MAX_UPLOAD_BYTES` | Numeric constant limiting file size to 10 MB (in bytes)         |
 | `FILE_CONSTRAINTS` | Object with `accept`, `mimeType`, `maxSizeMb`, `maxSizeBytes`   |
 | `Spinner`          | Small inline SVG spinner used internally; re-exported for reuse |
 
@@ -226,7 +227,7 @@ None — API endpoint is read from `NEXT_PUBLIC_API_URL` (falls back to `http://
 ### Validation rules
 
 - **Type:** only `application/pdf` accepted; any other MIME type is rejected.
-- **Size:** file must be ≤ 10 MB.
+- **Size:** file must be ≤ 10 MB (`MAX_UPLOAD_BYTES`). Validation is checked immediately upon file selection via `FILE_CONSTRAINTS`, and additionally enforced before the network `fetch` is triggered to ensure safety.
 
 ### Accessibility
 

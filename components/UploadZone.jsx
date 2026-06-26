@@ -3,11 +3,13 @@
 import { useRef, useState } from 'react';
 import { copy } from '../app/copy/en';
 
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
 const FILE_CONSTRAINTS = {
   accept: '.pdf',
   mimeType: 'application/pdf',
-  maxSizeMb: 10,
-  maxSizeBytes: 10 * 1024 * 1024,
+  maxSizeMb: MAX_UPLOAD_BYTES / (1024 * 1024),
+  maxSizeBytes: MAX_UPLOAD_BYTES,
 };
 
 function ConstraintBadge({ icon, label }) {
@@ -118,6 +120,12 @@ function UploadZone({ onUploadSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!file || status !== 'idle') return;
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      const sizeMb = MAX_UPLOAD_BYTES / (1024 * 1024);
+      setError(`File is too large. Max ${sizeMb} MB.`);
+      return;
+    }
 
     setStatus('uploading');
     setError(null);
@@ -298,4 +306,4 @@ function UploadZone({ onUploadSuccess }) {
 }
 
 export default UploadZone;
-export { FILE_CONSTRAINTS, Spinner };
+export { FILE_CONSTRAINTS, MAX_UPLOAD_BYTES, Spinner };
