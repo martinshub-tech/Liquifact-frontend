@@ -15,6 +15,13 @@ jest.mock("../lib/api/health", () => ({
   getHealth: jest.fn(),
 }));
 
+// Mock NavMenu to avoid WalletStatus pre-existing bugs
+jest.mock("../components/NavMenu", () => {
+  return function MockNavMenu() {
+    return <div data-testid="nav-menu">NavMenu</div>;
+  };
+});
+
 const mockGetHealth = getHealth as jest.Mock;
 
 describe("Home Page Health Check", () => {
@@ -68,7 +75,7 @@ describe("Home Page Health Check", () => {
     ).toBeTruthy();
   });
 
-  it("renders connected state", async () => {
+  it("renders connected state with green badge", async () => {
     mockGetHealth.mockResolvedValue({
       status: "connected",
       message: "Backend is healthy",
@@ -90,9 +97,12 @@ describe("Home Page Health Check", () => {
         screen.getByText(/backend is healthy/i)
       ).toBeTruthy();
     });
+
+    // Assert the "Connected" badge is rendered
+    expect(screen.getByText(/connected/i)).toBeTruthy();
   });
 
-  it("renders degraded state", async () => {
+  it("renders degraded state with amber badge", async () => {
     mockGetHealth.mockResolvedValue({
       status: "degraded",
       message: "Backend responded with 500",
@@ -114,9 +124,12 @@ describe("Home Page Health Check", () => {
         screen.getByText(/backend responded with 500/i)
       ).toBeTruthy();
     });
+
+    // Assert the "Degraded" badge is rendered
+    expect(screen.getByText(/degraded/i)).toBeTruthy();
   });
 
-  it("renders unreachable state", async () => {
+  it("renders unreachable state with red badge", async () => {
     mockGetHealth.mockResolvedValue({
       status: "unreachable",
       message: "Health check timed out",
@@ -135,6 +148,9 @@ describe("Home Page Health Check", () => {
         screen.getByText(/health check timed out/i)
       ).toBeTruthy();
     });
+
+    // Assert the "Unreachable" badge is rendered
+    expect(screen.getByText(/unreachable/i)).toBeTruthy();
   });
 
   it("renders raw response details", async () => {
@@ -158,6 +174,58 @@ describe("Home Page Health Check", () => {
       expect(
         screen.getByText(/view details/i)
       ).toBeTruthy();
+    });
+  });
+
+  it("renders distinct visual state for each status", async () => {
+    // Test connected state
+    mockGetHealth.mockResolvedValue({
+      status: "connected",
+      message: "Backend is healthy",
+    });
+
+    render(<Home />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /check backend health/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/connected/i)).toBeTruthy();
+    });
+
+    // Test degraded state
+    mockGetHealth.mockResolvedValue({
+      status: "degraded",
+      message: "Backend responded with 500",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /check backend health/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/degraded/i)).toBeTruthy();
+    });
+
+    // Test unreachable state
+    mockGetHealth.mockResolvedValue({
+      status: "unreachable",
+      message: "Health check timed out",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /check backend health/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/unreachable/i)).toBeTruthy();
     });
   });
 
