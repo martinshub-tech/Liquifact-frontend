@@ -201,8 +201,8 @@ export default function WalletStatus() {
       </div>
 
       <Button
-        variant={config.variant}
-        loading={config.loading}
+        variant={config.buttonVariant}
+        loading={walletState === WALLET_STATES.CONNECTING}
         disabled={config.disabled}
         onClick={handleClick}
         aria-label={config.buttonText}
