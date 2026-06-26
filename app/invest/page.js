@@ -1,16 +1,16 @@
 "use client";
-
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import Button from '@/components/Button';
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ErrorBanner from "@/components/ErrorBanner";
 import InvoiceCard from "@/components/InvoiceCard";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import Pagination from "@/components/Pagination";
-import InvoiceSearch from "@/components/InvoiceSearch";
-import InvoiceFilters, { DEFAULT_FILTERS, hasActiveFilters } from "@/components/InvoiceFilters";
 import { copy } from "../copy/en";
 import { fetchInvestableInvoices } from "../../lib/api/invoices";
-import { loadMockInvoices } from "./lib";
+import InvoiceSearch from '@/components/InvoiceSearch';
+import InvoiceFilters, { DEFAULT_FILTERS } from '@/components/InvoiceFilters';
+import useInvoiceFilters from '../../lib/hooks/useInvoiceFilters';
 
 /**
  * Number of invoices rendered per page.  Export allows tests to reference
@@ -52,6 +52,7 @@ export function getInvoiceLoadAnnouncement(
  * @returns {string}
  */
 export function getPaginationAnnouncement(shown, total) {
+  if (total === 0) return "No invoices available";
   return `Showing ${shown} of ${total} investable invoices`;
 }
 
@@ -71,6 +72,7 @@ export function getPaginationAnnouncement(shown, total) {
 export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
   const [invoices, setInvoices] = useState(null); // null = loading
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [statusMessage, setStatusMessage] = useState("");
   const [loadError, setLoadError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -79,6 +81,9 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
 
   /** Ref forwarded to the "Load more" button for focus management. */
   const loadMoreRef = useRef(null);
+
+  const allInvoices = invoices || [];
+  const filteredInvoices = useInvoiceFilters(allInvoices, debouncedQuery, filters);
 
   // ——————————————————————————————————————————————————————————————————————————
   useEffect(() => {
@@ -95,13 +100,12 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
 
         setInvoices(normalizedInvoices);
         setVisibleCount(PAGE_SIZE);
-        setLastAction("load");
       } catch {
         if (!isActive) return;
 
-        setInvoices([]);
+        setInvoices(null);
         setLoadError(copy.invest.errorDescription);
-        setLastAction("load");
+        setStatusMessage(copy.invest.errorStatus);
       }
     };
 
@@ -247,9 +251,8 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
    */
   const handleLoadMore = useCallback(() => {
     setVisibleCount((prev) => {
-      const total = filteredInvoices.length;
-      const next = Math.min(prev + PAGE_SIZE, total);
-      setLastAction("paginate");
+      const next = Math.min(prev + PAGE_SIZE, filteredInvoices.length);
+      setStatusMessage(getPaginationAnnouncement(next, filteredInvoices.length));
       return next;
     });
 
@@ -258,6 +261,15 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
       loadMoreRef.current?.focus();
     }, 0);
   }, [filteredInvoices]);
+
+  // ——————————————————————————————————————————————————————————————————————————
+  const visibleInvoices = filteredInvoices.slice(0, visibleCount);
+
+  useEffect(() => {
+    if (invoices === null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStatusMessage(getPaginationAnnouncement(visibleInvoices.length, filteredInvoices.length));
+  }, [filteredInvoices, visibleInvoices.length, invoices]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -283,7 +295,7 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
           <div className="flex flex-wrap gap-4 items-center">
             <InvoiceSearch
               value={searchQuery}
-              onChange={handleSearchChange}
+              onChange={setSearchQuery}
             />
             <InvoiceFilters
               filters={filters}

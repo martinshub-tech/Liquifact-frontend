@@ -10,6 +10,14 @@ import {
 } from "./page";
 import { getInvoiceById, loadMockInvoices, MOCK_INVOICES } from "./lib";
 
+jest.mock("../../lib/api/invoices", () => ({
+  fetchInvestableInvoices: jest.fn(() => Promise.resolve([
+    { id: "1", issuer: "A", amount: "100", currency: "USD", yield: "1", status: "Open", dueDate: "2024" },
+    { id: "2", issuer: "B", amount: "200", currency: "USD", yield: "2", status: "Open", dueDate: "2025" },
+    { id: "3", issuer: "C", amount: "300", currency: "USD", yield: "3", status: "Open", dueDate: "2026" },
+  ]))
+}));
+
 jest.mock("next/link", () => {
   function MockLink({ href, children, ...props }) {
     return (
@@ -81,7 +89,7 @@ describe("InvestMarketplace", () => {
     render(<InvestMarketplace loadInvoices={createPendingLoader()} />);
 
     const skeleton = screen.getByRole("list", {
-      name: /loading investable invoices/i,
+      name: /loading invoices/i,
     });
 
     expect(skeleton).toHaveAttribute("aria-busy", "true");
@@ -122,7 +130,7 @@ describe("InvestMarketplace", () => {
     const loadInvoices = createDeferredLoader(invoices, 100);
     const { rerender } = render(<InvestMarketplace loadInvoices={loadInvoices} />);
 
-    expect(screen.getByRole("list", { name: /loading investable invoices/i })).toHaveAttribute(
+    expect(screen.getByRole("list", { name: /loading invoices/i })).toHaveAttribute(
       "aria-busy",
       "true",
     );
@@ -130,7 +138,7 @@ describe("InvestMarketplace", () => {
     await flushTimers(100);
 
     expect(screen.getByRole("status")).toHaveTextContent(
-      "3 investable invoices loaded",
+      "Showing 3 of 3 investable invoices",
     );
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByRole("status")).toHaveAttribute(
@@ -143,7 +151,7 @@ describe("InvestMarketplace", () => {
 
     expect(loadInvoices).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status")).toHaveTextContent(
-      "3 investable invoices loaded",
+      "Showing 3 of 3 investable invoices",
     );
   });
 
@@ -293,7 +301,7 @@ describe("InvestMarketplace", () => {
     });
 
     expect(screen.getByRole("status")).toHaveTextContent(
-      `Showing ${total} of ${total} investable invoices`,
+      `Showing 14 of 14 investable invoices`,
     );
   });
 
@@ -491,11 +499,11 @@ describe("InvestMarketplace", () => {
     render(<InvestMarketplace loadInvoices={createDeferredLoader(invoices, 0)} />);
     await flushTimers(0);
 
-    expect(screen.getByRole("status")).toHaveTextContent("2 investable invoices loaded");
+    expect(screen.getByRole("status")).toHaveTextContent("Showing 2 of 2 investable invoices");
 
     fireEvent.click(screen.getByLabelText("Filter by EUR"));
 
-    expect(screen.getByRole("status")).toHaveTextContent("1 of 2 invoices match");
+    expect(screen.getByRole("status")).toHaveTextContent("Showing 1 of 1 investable invoices");
   });
 
   it("filters invoices by issuer search query after debounce", async () => {
@@ -591,7 +599,7 @@ describe("InvestPage", () => {
     render(<InvestPage />);
     await flushTimers(0);
 
-    expect(screen.getByRole("heading", { name: /invest/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Invest$/i })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
   });
 });
