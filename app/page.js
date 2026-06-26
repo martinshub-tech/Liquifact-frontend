@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useState } from 'react';
 import Link from 'next/link';
+import NavMenu from '@/components/NavMenu';
 
 import { copy } from './copy/en';
 import { getHealth } from '../lib/api/health';
+import { safeJsonStringify } from '../lib/format/safeJson';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -38,6 +40,9 @@ const getStatusConfig = (status) => {
       };
   }
 };
+
+/** Known fields to surface in the structured summary (from raw server payload). */
+const KNOWN_FIELDS = ['status', 'message', 'version'];
 
 export default function Home() {
   const [health, setHealth] = useState(null);
@@ -86,35 +91,53 @@ export default function Home() {
             type="button"
             onClick={checkApi}
             disabled={loading}
+            aria-label={copy.home.checkApiHealth}
             className="rounded-lg cursor-pointer bg-slate-800 px-4 py-3 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
           >
             {loading ? copy.home.checking : copy.home.checkApiHealth}
           </button>
+
           {!loading && health && (
             <div className="mt-4">
               {/* Structured health status card with color-coded badge */}
               {/* Status changes are announced politely via aria-live="polite" */}
               <div role="status" aria-live="polite" className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
+
+                {/* Color-coded connection badge */}
                 <div className="flex items-center gap-3 mb-3">
-                  {/* Color-coded badge with icon and text - not color-only for accessibility */}
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusConfig(health.status).badgeClass}`}>
                     <span aria-hidden="true">{getStatusConfig(health.status).icon}</span>
                     <span>{getStatusConfig(health.status).label}</span>
                   </span>
                 </div>
-                <p className="text-sm text-slate-300">{health.message}</p>
-                
-                {/* Details disclosure - keeps raw payload behind expandable section */}
-                {health.details && (
-                  <details className="mt-3">
-                    <summary className="cursor-pointer text-sm text-slate-400 hover:text-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
-                      {copy.home.healthStatus.viewDetails}
-                    </summary>
-                    <pre className="mt-2 text-xs text-slate-400 bg-slate-900/50 p-3 rounded overflow-x-auto">
-                      {JSON.stringify(health.details, null, 2)}
-                    </pre>
-                  </details>
+
+                {/* Human-readable connection summary */}
+                {health.message && (
+                  <p className="text-sm text-slate-300 mb-3">{health.message}</p>
                 )}
+
+                {/* Structured key/value summary — reads from the raw server payload */}
+                {health.details && typeof health.details === 'object' && (
+                  <dl className="space-y-1 text-sm text-slate-300 mb-3">
+                    {KNOWN_FIELDS.filter((key) => key in health.details).map((key) => (
+                      <div key={key} className="flex gap-2">
+                        <dt className="font-medium text-slate-400">{key}:</dt>
+                        <dd>{String(health.details[key])}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {/* Raw response — always shown behind an expandable section */}
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-sm text-slate-400 hover:text-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
+                    Raw response
+                  </summary>
+                  <pre className="mt-2 text-xs text-slate-400 bg-slate-900/50 p-3 rounded overflow-x-auto">
+                    {safeJsonStringify(health.details ?? health)}
+                  </pre>
+                </details>
+
               </div>
             </div>
           )}
@@ -123,4 +146,3 @@ export default function Home() {
     </div>
   );
 }
-

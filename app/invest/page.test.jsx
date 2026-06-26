@@ -497,6 +497,50 @@ describe("InvestMarketplace", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("1 of 2 invoices match");
   });
+
+  it("filters invoices by issuer search query after debounce", async () => {
+    const invoices = [
+      { id: "inv-001", issuer: "Acme Supplies Ltd", amount: "100", currency: "USD", dueDate: "2026-06-15", yield: "5%", status: "Open" },
+      { id: "inv-002", issuer: "Bright Logistics GmbH", amount: "200", currency: "EUR", dueDate: "2026-07-01", yield: "6%", status: "Open" },
+    ];
+
+    render(<InvestMarketplace loadInvoices={createDeferredLoader(invoices, 0)} />);
+    await flushTimers(0);
+
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+
+    fireEvent.change(screen.getByLabelText("Search by issuer name"), {
+      target: { value: "acme" },
+    });
+
+    // Before debounce runs, it should not filter yet
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+
+    await flushTimers(SEARCH_DEBOUNCE_MS);
+
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.getByText("Acme Supplies Ltd")).toBeInTheDocument();
+    expect(screen.queryByText("Bright Logistics GmbH")).not.toBeInTheDocument();
+  });
+
+  it("announces filtered results in the live region when search is applied", async () => {
+    const invoices = [
+      { id: "inv-001", issuer: "Acme Supplies Ltd", amount: "100", currency: "USD", dueDate: "2026-06-15", yield: "5%", status: "Open" },
+      { id: "inv-002", issuer: "Bright Logistics GmbH", amount: "200", currency: "EUR", dueDate: "2026-07-01", yield: "6%", status: "Open" },
+    ];
+
+    render(<InvestMarketplace loadInvoices={createDeferredLoader(invoices, 0)} />);
+    await flushTimers(0);
+
+    expect(screen.getByRole("status")).toHaveTextContent("2 investable invoices loaded");
+
+    fireEvent.change(screen.getByLabelText("Search by issuer name"), {
+      target: { value: "bright" },
+    });
+    await flushTimers(SEARCH_DEBOUNCE_MS);
+
+    expect(screen.getByRole("status")).toHaveTextContent("1 of 2 invoices match");
+  });
 });
 
 // ── Unit tests for pure helpers ────────────────────────────────────────────

@@ -572,6 +572,16 @@ describe('UploadZone', () => {
   });
 
   describe('GROUP 4: Accessibility', () => {
+    beforeEach(() => {
+      // axe relies on real async scheduling; restore timers for this group
+      jest.useRealTimers();
+    });
+
+    afterEach(() => {
+      // Re-install fake timers so the outer afterEach teardown is consistent
+      jest.useFakeTimers();
+    });
+
     it('passes axe accessibility check in idle state', async () => {
       const { container } = render(<UploadZone />);
       const results = await axe(container);

@@ -126,9 +126,10 @@ export function ToastProvider({ children }) {
   );
 
   useEffect(() => {
+    const currentTimers = timers.current;
     return () => {
-      timers.current.forEach((timeout) => clearTimeout(timeout));
-      timers.current.clear();
+      currentTimers.forEach((timeout) => clearTimeout(timeout));
+      currentTimers.clear();
     };
   }, []);
 

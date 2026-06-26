@@ -29,6 +29,9 @@ async function flushTimers(delayMs) {
 describe("WalletStatus", () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    if (typeof window !== "undefined") {
+      window.localStorage.clear();
+    }
   });
 
   afterEach(async () => {

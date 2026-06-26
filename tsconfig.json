@@ -8,6 +8,10 @@
     ],
     "types": ["jest", "node", "@testing-library/jest-dom"],
     "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "skipLibCheck": true,
     "strict": false,
     "noEmit": true,

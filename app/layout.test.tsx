@@ -21,11 +21,15 @@ jest.mock("../components/Footer", () => {
   return MockFooter;
 });
 
-jest.mock("../components/ToastProvider", () => ({
-  ToastProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
-  },
-}));
+jest.mock("../components/ToastProvider", () => {
+  const React = require("react");
+  return {
+    ToastProvider({ children }: { children: React.ReactNode }) {
+      return <>{children}</>;
+    },
+    ToastContext: React.createContext(null),
+  };
+});
 
 jest.mock("../components/WalletContext", () => ({
   WalletProvider({ children }: { children: React.ReactNode }) {
@@ -67,7 +71,7 @@ describe("Skip-to-content link", () => {
     render(
       <SkipLinkFixture>
         <main id="main-content">
-          <a href="/invoices">Invoices</a>
+          <a href="#invoices">Invoices</a>
           <button type="button">Click me</button>
         </main>
       </SkipLinkFixture>
@@ -88,8 +92,8 @@ describe("Skip-to-content link", () => {
     render(
       <SkipLinkFixture>
         <main id="main-content">
-          <a href="/invoices">Invoices</a>
-          <a href="/invest">Invest</a>
+          <a href="#invoices">Invoices</a>
+          <a href="#invest">Invest</a>
         </main>
       </SkipLinkFixture>
     );
@@ -161,7 +165,7 @@ describe("RootLayout", () => {
     render(
       <RootLayout>
         <main id="main-content">
-          <a href="/invoices">Invoices</a>
+          <a href="#invoices">Invoices</a>
         </main>
       </RootLayout>
     );

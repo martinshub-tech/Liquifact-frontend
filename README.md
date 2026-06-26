@@ -166,50 +166,6 @@ See [TESTING.md](TESTING.md) for the full guide covering Jest unit/accessibility
 MIT (see root LiquiFact project for full license).
 
 
-Web app for **LiquiFact** — the global invoice liquidity network on Stellar. Next.js dashboard for SMEs (upload invoices, get liquidity) and investors (fund tokenized invoices, earn yield). Stellar wallet integration is planned.
-
-Part of the LiquiFact stack: **frontend** (this repo) | **backend** (Express API) | **contracts** (Soroban).
-
----
-
-## Prerequisites
-
-- **Node.js** 20+ (LTS recommended)
-- **npm** 9+
-
----
-
-## Setup
-
-1. **Clone the repo**
-
-   ```bash
-   git clone <this-repo-url>
-   cd liquifact-frontend
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm ci
-   ```
-
-3. **Configure environment** (optional)
-
-   ```bash
-   cp .env.local.example .env.local
-   # Set NEXT_PUBLIC_API_URL if the API is not at http://localhost:3001
-   ```
-
----
-
-## API Integration
-
-For frontend/backend contract details see:
-
-[docs/api-integration.md](docs/api-integration.md)
-
----
 
 ## Development
 
@@ -235,9 +191,19 @@ Default: [http://localhost:3000](http://localhost:3000). The home page can check
 
 The invoices page header also uses the shared `NavMenu` component, replacing the old bespoke header so navigation and wallet entry stay consistent across routes.
 
-### Marketplace search
+### Marketplace search & filtering
 
-The Invest page (`app/invest/page.js`) includes an issuer search field above the invoice list. Typing in the field filters invoices by case-insensitive substring match on `issuer`. Input is debounced at **200ms** so the text field stays responsive while filtering waits for settled input. When a filter is active, the `aria-live` status region announces the match count (e.g. "2 of 3 invoices match"). A distinct "no matches" state is shown when the filter yields zero results, separate from the empty-marketplace state.
+The Invest page (`app/invest/page.js`) includes an issuer-name search field and filter panel above the invoice list.
+
+| Feature | Details |
+|---------|----------|
+| **Search component** | `components/InvoiceSearch.jsx` — controlled text input |
+| **Filter panel** | `components/InvoiceFilters.jsx` — yield, risk, maturity, and currency filters |
+| **Debounce** | `200 ms` — filtering waits for settled input before updating results |
+| **Match strategy** | Case-insensitive substring match on the `issuer` field |
+| **Screen-reader announcements** | An `aria-live="polite"` region announces the result count on every filter change (e.g. *"2 of 3 invoices match"*) |
+| **No-match state** | A distinct empty state is shown when filters produce zero results, separate from the empty-marketplace state |
+| **Pagination** | `components/Pagination.jsx` — page controls appear when filtered results exceed `PAGE_SIZE` (default 10) |
 
 ---
 
@@ -251,16 +217,31 @@ liquifact-frontend/
 │   ├── copy/en.js          # Centralised UI copy
 │   ├── invoices/           # SME invoice upload page
 │   └── invest/             # Investor marketplace
-│       ├── page.js         # Marketplace list (links to detail)
+│       ├── page.js         # Marketplace list with search, filters & pagination
 │       ├── loading.js      # Marketplace skeleton
-│       ├── lib.js          # Mock invoice data + helpers
+│       ├── lib.js          # Mock invoice data + loadMockInvoices helper
 │       └── [id]/           # Invoice detail + funding CTA
 │           ├── page.js     # Full invoice details
 │           ├── loading.js  # Detail skeleton
 │           └── not-found.js # Unknown invoice fallback
 ├── components/
-│   ├── WalletStatus.jsx    # Wallet connection UI
-│   └── WalletProvider.jsx  # Single source of truth for shared wallet state
+│   ├── Button.jsx          # Reusable button with variant styles
+│   ├── ErrorBanner.jsx     # Accessible error state banner
+│   ├── Footer.jsx          # Site-wide footer with copy-driven links
+│   ├── InvoiceFilters.jsx  # Yield / risk / maturity / currency filter panel
+│   ├── InvoiceList.jsx     # Invoice table with loading / error / empty states
+│   ├── InvoiceListSkeleton.jsx # aria-busy skeleton loader for invoice lists
+│   ├── InvoiceSearch.jsx   # Controlled issuer-name search input
+│   ├── NavMenu.jsx         # Responsive site navigation header
+│   ├── Pagination.jsx      # Page controls for large result sets
+│   ├── ToastProvider.jsx   # Toast notification system
+│   ├── UploadZone.jsx      # Invoice PDF upload + validation
+│   ├── WalletProvider.jsx  # App-wide wallet state provider
+│   ├── WalletStatus.jsx    # Wallet connection / address display
+│   └── WalletStatusLazy.jsx # next/dynamic wrapper (ssr: false)
+├── lib/
+│   ├── api/invoices.js     # Invoice API helpers
+│   └── format/safeJson.js  # Depth-limited JSON formatter
 ├── public/
 ├── .env.local.example
 ├── eslint.config.mjs
